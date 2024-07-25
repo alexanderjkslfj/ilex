@@ -32,7 +32,7 @@ pub trait Item {
     fn get_all_events(&self) -> Vec<Event>;
 }
 
-pub fn items_to_string(items: Vec<XmlItem>) -> String {
+pub fn items_to_string(items: &[XmlItem]) -> String {
     let mut str = String::new();
     for item in items {
         let item_str = match &item {
