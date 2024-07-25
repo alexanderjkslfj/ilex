@@ -196,7 +196,6 @@ fn get_attributes(element: &BytesStart) -> Result<HashMap<String, String>, FromU
 fn set_attribute(start: &mut BytesStart, key: &str, value: &str) -> Result<(), FromUtf8Error> {
     let mut attributes = get_attributes(start)?;
     attributes.insert(String::from(key), String::from(value));
-    println!("{:#?}", attributes);
     let attrs = attributes
         .iter()
         .map(|(key, value)| (key.as_str(), value.as_str()));
