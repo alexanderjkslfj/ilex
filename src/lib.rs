@@ -6,7 +6,7 @@ use quick_xml::{
         Event,
     },
     name::QName,
-    Reader, Writer,
+    Error, Reader, Writer,
 };
 
 pub enum XmlItem<'a> {
@@ -34,6 +34,7 @@ pub trait Item {
 
 pub trait Elem {
     fn get_attributes(&self) -> Result<HashMap<String, String>, FromUtf8Error>;
+    fn get_attribute(&self, key: &str) -> Result<Option<String>, Error>;
     fn set_attribute(&mut self, key: &str, value: &str) -> Result<(), FromUtf8Error>;
 }
 
@@ -111,6 +112,10 @@ impl Elem for Element<'_> {
         get_attributes(&self.start)
     }
 
+    fn get_attribute(&self, key: &str) -> Result<Option<String>, Error> {
+        get_attribute(&self.start, key)
+    }
+
     fn set_attribute(&mut self, key: &str, value: &str) -> Result<(), FromUtf8Error> {
         set_attribute(&mut self.start, key, value)
     }
@@ -155,6 +160,10 @@ impl Elem for EmptyElement<'_> {
         get_attributes(&self.element)
     }
 
+    fn get_attribute(&self, key: &str) -> Result<Option<String>, Error> {
+        get_attribute(&self.element, key)
+    }
+
     fn set_attribute(&mut self, key: &str, value: &str) -> Result<(), FromUtf8Error> {
         set_attribute(&mut self.element, key, value)
     }
@@ -170,8 +179,8 @@ impl Display for EmptyElement<'_> {
     }
 }
 
-fn get_attributes(element: &BytesStart) -> Result<HashMap<String, String>, FromUtf8Error> {
-    let attrs: Vec<Attribute> = element
+fn get_attributes(start: &BytesStart) -> Result<HashMap<String, String>, FromUtf8Error> {
+    let attrs: Vec<Attribute> = start
         .attributes()
         .filter_map(|attr| {
             if attr.is_ok() {
@@ -191,6 +200,19 @@ fn get_attributes(element: &BytesStart) -> Result<HashMap<String, String>, FromU
     }
 
     Ok(attributes)
+}
+
+fn get_attribute(start: &BytesStart, key: &str) -> Result<Option<String>, Error> {
+    let Some(attr) = start.try_get_attribute(key)? else {
+        return Ok(None);
+    };
+    let value_res = u8_to_string(&attr.value);
+    if value_res.is_err() {
+        return Err(Error::NonDecodable(Some(
+            value_res.unwrap_err().utf8_error(),
+        )));
+    }
+    Ok(Some(value_res.unwrap()))
 }
 
 fn set_attribute(start: &mut BytesStart, key: &str, value: &str) -> Result<(), FromUtf8Error> {
