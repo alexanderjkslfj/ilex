@@ -32,6 +32,24 @@ pub trait Item {
     fn get_all_events(&self) -> Vec<Event>;
 }
 
+pub fn items_to_string(items: Vec<XmlItem>) -> String {
+    let mut str = String::new();
+    for item in items {
+        let item_str = match &item {
+            XmlItem::Text(text) => text.to_string(),
+            XmlItem::Comment(text) => text.to_string(),
+            XmlItem::CData(text) => text.to_string(),
+            XmlItem::PI(text) => text.to_string(),
+            XmlItem::Decl(text) => text.to_string(),
+            XmlItem::DocType(text) => text.to_string(),
+            XmlItem::Element(text) => text.to_string(),
+            XmlItem::EmptyElement(text) => text.to_string(),
+        };
+        str.push_str(&item_str);
+    }
+    str
+}
+
 pub struct Element<'a> {
     start: BytesStart<'a>,
     end: BytesEnd<'a>,
