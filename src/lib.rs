@@ -32,6 +32,11 @@ pub trait Item {
     fn get_all_events(&self) -> Vec<Event>;
 }
 
+pub trait Elem {
+    fn get_attributes(&self) -> Result<HashMap<String, String>, FromUtf8Error>;
+    fn set_attribute(&mut self, key: &str, value: &str) -> Result<(), FromUtf8Error>;
+}
+
 pub fn items_to_string(items: &[XmlItem]) -> String {
     let mut str = String::new();
     for item in items {
@@ -63,14 +68,6 @@ impl<'a> Element<'a> {
 
     pub fn set_name(&mut self, name: &str) {
         self.start.set_name(name.as_bytes());
-    }
-
-    pub fn get_attributes(&self) -> Result<HashMap<String, String>, FromUtf8Error> {
-        get_attributes(&self.start)
-    }
-
-    pub fn set_attribute(&mut self, key: &str, value: &str) {
-        self.start.push_attribute((key, value));
     }
 
     pub fn new(name: &'a str) -> Self {
@@ -109,6 +106,16 @@ impl Item for Element<'_> {
     }
 }
 
+impl Elem for Element<'_> {
+    fn get_attributes(&self) -> Result<HashMap<String, String>, FromUtf8Error> {
+        get_attributes(&self.start)
+    }
+
+    fn set_attribute(&mut self, key: &str, value: &str) -> Result<(), FromUtf8Error> {
+        set_attribute(&mut self.start, key, value)
+    }
+}
+
 impl Display for Element<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut writer = Writer::new(Cursor::new(Vec::new()));
@@ -135,19 +142,21 @@ impl<'a> EmptyElement<'a> {
     pub fn set_name(&mut self, name: &str) {
         self.element.set_name(name.as_bytes());
     }
-
-    pub fn get_attributes(&self) -> Result<HashMap<String, String>, FromUtf8Error> {
-        get_attributes(&self.element)
-    }
-
-    pub fn set_attribute(&mut self, key: &str, value: &str) {
-        self.element.push_attribute((key, value));
-    }
 }
 
 impl Item for EmptyElement<'_> {
     fn get_all_events(&self) -> Vec<Event> {
         vec![Event::Empty(self.element.to_owned())]
+    }
+}
+
+impl Elem for EmptyElement<'_> {
+    fn get_attributes(&self) -> Result<HashMap<String, String>, FromUtf8Error> {
+        get_attributes(&self.element)
+    }
+
+    fn set_attribute(&mut self, key: &str, value: &str) -> Result<(), FromUtf8Error> {
+        set_attribute(&mut self.element, key, value)
     }
 }
 
@@ -182,6 +191,18 @@ fn get_attributes(element: &BytesStart) -> Result<HashMap<String, String>, FromU
     }
 
     Ok(attributes)
+}
+
+fn set_attribute(start: &mut BytesStart, key: &str, value: &str) -> Result<(), FromUtf8Error> {
+    let mut attributes = get_attributes(start)?;
+    attributes.insert(String::from(key), String::from(value));
+    println!("{:#?}", attributes);
+    let attrs = attributes
+        .iter()
+        .map(|(key, value)| (key.as_str(), value.as_str()));
+    start.clear_attributes();
+    start.extend_attributes(attrs);
+    Ok(())
 }
 
 pub enum OtherItem<'a> {
