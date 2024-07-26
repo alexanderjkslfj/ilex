@@ -63,10 +63,6 @@ pub struct Element<'a> {
 }
 
 impl<'a> Element<'a> {
-    pub fn get_name(&self) -> Result<String, FromUtf8Error> {
-        qname_to_string(&self.start.name())
-    }
-
     pub fn new(name: &'a str) -> Self {
         let start = BytesStart::new(name);
         let end = BytesEnd::new(name);
@@ -80,6 +76,10 @@ impl<'a> Element<'a> {
     pub fn set_name(&mut self, name: &'a str) {
         self.start.set_name(name.as_bytes());
         self.end = BytesEnd::new(name); // TODO: do it without replacing the entire object
+    }
+
+    pub fn get_name(&self) -> Result<String, FromUtf8Error> {
+        qname_to_string(&self.start.name())
     }
 
     pub fn get_items_at_depth(&self, depth: usize) -> Vec<&XmlItem> {
@@ -179,18 +179,18 @@ pub struct EmptyElement<'a> {
 }
 
 impl<'a> EmptyElement<'a> {
+    pub fn new(name: &'a str) -> Self {
+        EmptyElement {
+            element: BytesStart::new(name),
+        }
+    }
+
     pub fn get_name(&self) -> Result<String, FromUtf8Error> {
         qname_to_string(&self.element.name())
     }
 
     pub fn set_name(&mut self, name: &str) {
         self.element.set_name(name.as_bytes());
-    }
-
-    pub fn new(name: &'a str) -> Self {
-        EmptyElement {
-            element: BytesStart::new(name),
-        }
     }
 }
 
@@ -289,17 +289,6 @@ impl<'a> Other<'a> {
         Other { item }
     }
 
-    pub fn get_value(&self) -> Result<String, FromUtf8Error> {
-        match &self.item {
-            OtherItem::Comment(event) => u8_to_string(event),
-            OtherItem::Text(event) => u8_to_string(event),
-            OtherItem::DocType(event) => u8_to_string(event),
-            OtherItem::CData(event) => u8_to_string(event),
-            OtherItem::Decl(event) => u8_to_string(event),
-            OtherItem::PI(event) => u8_to_string(event),
-        }
-    }
-
     pub fn set_value<'b: 'a>(&mut self, value: &'b str) {
         self.item = match &self.item {
             OtherItem::Comment(_) => OtherItem::Comment(BytesText::new(value)),
@@ -309,6 +298,17 @@ impl<'a> Other<'a> {
             OtherItem::Decl(_) => OtherItem::Decl(BytesDecl::new("1.0", None, None)), // TODO: improve
             OtherItem::PI(_) => OtherItem::PI(BytesPI::new(value)),
         };
+    }
+
+    pub fn get_value(&self) -> Result<String, FromUtf8Error> {
+        match &self.item {
+            OtherItem::Comment(event) => u8_to_string(event),
+            OtherItem::Text(event) => u8_to_string(event),
+            OtherItem::DocType(event) => u8_to_string(event),
+            OtherItem::CData(event) => u8_to_string(event),
+            OtherItem::Decl(event) => u8_to_string(event),
+            OtherItem::PI(event) => u8_to_string(event),
+        }
     }
 
     fn get_event(&self) -> Event {
