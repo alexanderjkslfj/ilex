@@ -379,7 +379,6 @@ impl<'a> Other<'a> {
     /** Change the value of an item.
     ```rust
         use ilex_xml::Other;
-        use quick_xml::events::BytesText;
 
         let mut text_item = Other::new_text("hello");
         text_item.set_value("world");
@@ -399,7 +398,6 @@ impl<'a> Other<'a> {
     /** Get the value of an item.
     ```rust
         use ilex_xml::Other;
-        use quick_xml::events::BytesText;
 
         let text_item = Other::new_text("hello world");
         assert_eq!("hello world", text_item.get_value().unwrap());
