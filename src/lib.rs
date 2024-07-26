@@ -44,11 +44,11 @@ impl XmlItem<'_> {
     }
 }
 
-trait Item {
+trait GetEvents {
     fn get_all_events(&self) -> Vec<Event>;
 }
 
-/** Used for managing attributes of an Element or EmptyElement. */
+/** Used for managing the tag and attributes of an Element or EmptyElement. */
 pub trait Elem<'a> {
     /** Get a map of all attributes. If an attribute occurs multiple times, the last occurence is used. */
     fn get_attributes(&self) -> Result<HashMap<String, String>, FromUtf8Error>;
@@ -158,7 +158,7 @@ impl<'a> Element<'a> {
     }
 }
 
-impl Item for Element<'_> {
+impl GetEvents for Element<'_> {
     fn get_all_events(&self) -> Vec<Event> {
         let mut events = vec![Event::Start(self.start.to_owned())];
 
@@ -222,7 +222,7 @@ impl<'a> EmptyElement<'a> {
     }
 }
 
-impl Item for EmptyElement<'_> {
+impl GetEvents for EmptyElement<'_> {
     fn get_all_events(&self) -> Vec<Event> {
         vec![Event::Empty(self.element.to_owned())]
     }
@@ -414,7 +414,7 @@ impl<'a> Other<'a> {
     }
 }
 
-impl Item for Other<'_> {
+impl GetEvents for Other<'_> {
     fn get_all_events(&self) -> Vec<Event> {
         vec![self.get_event()]
     }
