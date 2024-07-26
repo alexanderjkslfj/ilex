@@ -9,6 +9,7 @@ use quick_xml::{
     Error, Reader, Writer,
 };
 
+/** Any XML item, such as an element ```<element></element>```, a comment ```<!-- comment -->``` or even just some text ```text```. */
 pub enum XmlItem<'a> {
     /** Element ```<tag attr="value">...</tag>```. */
     Element(Element<'a>),
@@ -32,12 +33,20 @@ trait Item {
     fn get_all_events(&self) -> Vec<Event>;
 }
 
+/** Used for managing attributes of an Element or EmptyElement. */
 pub trait Elem {
+    /** Retrieves a map of all attributes. If an attribute occurs multiple times, the last occurence is used. */
     fn get_attributes(&self) -> Result<HashMap<String, String>, FromUtf8Error>;
+    /** Retrieves the attribute. */
     fn get_attribute(&self, key: &str) -> Result<Option<String>, Error>;
+    /** Adds or replaces an attribute. */
     fn set_attribute(&mut self, key: &str, value: &str) -> Result<(), FromUtf8Error>;
 }
 
+/** Stringify a list of XML items.
+
+Equivalent to calling to_string on each item and concatenating the results.
+*/
 pub fn items_to_string(items: &[XmlItem]) -> String {
     let mut str = String::new();
     for item in items {
@@ -56,9 +65,11 @@ pub fn items_to_string(items: &[XmlItem]) -> String {
     str
 }
 
+/** An XML element ```<element></element>``` */
 pub struct Element<'a> {
     start: BytesStart<'a>,
     end: BytesEnd<'a>,
+    /** All items contained within the element. */
     pub children: Vec<XmlItem<'a>>,
 }
 
@@ -73,15 +84,27 @@ impl<'a> Element<'a> {
         }
     }
 
+    /** Change the tag name of the element ```<name></name>```. */
     pub fn set_name(&mut self, name: &'a str) {
         self.start.set_name(name.as_bytes());
         self.end = BytesEnd::new(name); // TODO: do it without replacing the entire object
     }
 
+    /** Get the tag name of the element ```<name></name>```. */
     pub fn get_name(&self) -> Result<String, FromUtf8Error> {
         qname_to_string(&self.start.name())
     }
 
+    /** Get all items at a certain depth within the element.
+    ```xml
+    <element>
+        <item depth="1">
+            <item at-depth="2">
+                This text is at depth 3.
+            </item>
+        </item>
+    </element>
+    ```*/
     pub fn get_items_at_depth(&self, depth: usize) -> Vec<&XmlItem> {
         if depth == 0 {
             panic!("depth cannot be zero.");
@@ -102,6 +125,12 @@ impl<'a> Element<'a> {
         items
     }
 
+    /** Get the text content of all text items within the element.
+    ```xml
+    <element>Hello<child>World</child></element>
+    ```
+    The above would result in "HelloWorld".
+         */
     pub fn get_text_content(&self) -> Result<String, FromUtf8Error> {
         let mut content = String::new();
 
@@ -174,6 +203,7 @@ impl Display for Element<'_> {
     }
 }
 
+/** A self-closing XML element ```<element />```. */
 pub struct EmptyElement<'a> {
     element: BytesStart<'a>,
 }
@@ -185,10 +215,12 @@ impl<'a> EmptyElement<'a> {
         }
     }
 
+    /** Get the tag name of the element ```<name />```. */
     pub fn get_name(&self) -> Result<String, FromUtf8Error> {
         qname_to_string(&self.element.name())
     }
 
+    /** Change the tag name of the element ```<name />```. */
     pub fn set_name(&mut self, name: &str) {
         self.element.set_name(name.as_bytes());
     }
@@ -271,6 +303,7 @@ fn set_attribute(start: &mut BytesStart, key: &str, value: &str) -> Result<(), F
     Ok(())
 }
 
+/** Any XML item that is not an element. */
 pub enum OtherItem<'a> {
     Comment(BytesText<'a>),
     Text(BytesText<'a>),
@@ -280,6 +313,7 @@ pub enum OtherItem<'a> {
     PI(BytesPI<'a>),
 }
 
+/** Wrapper for any XML item that is not an element. */
 pub struct Other<'a> {
     item: OtherItem<'a>,
 }
@@ -289,6 +323,15 @@ impl<'a> Other<'a> {
         Other { item }
     }
 
+    /** Change the value of an item.
+    ```rust
+        use ilex::{Other, OtherItem};
+        use quick_xml::events::BytesText;
+
+        let mut text_item = Other::new(OtherItem::Text(BytesText::new("hello")));
+        text_item.set_value("world");
+        assert_eq!("world", text_item.to_string());
+    ```*/
     pub fn set_value<'b: 'a>(&mut self, value: &'b str) {
         self.item = match &self.item {
             OtherItem::Comment(_) => OtherItem::Comment(BytesText::new(value)),
@@ -300,6 +343,14 @@ impl<'a> Other<'a> {
         };
     }
 
+    /** Get the value of an item.
+    ```rust
+        use ilex::{Other, OtherItem};
+        use quick_xml::events::BytesText;
+
+        let text_item = Other::new(OtherItem::Text(BytesText::new("hello world")));
+        assert_eq!("hello world", text_item.get_value().unwrap());
+    ```*/
     pub fn get_value(&self) -> Result<String, FromUtf8Error> {
         match &self.item {
             OtherItem::Comment(event) => u8_to_string(event),
@@ -339,11 +390,13 @@ impl Display for Other<'_> {
     }
 }
 
+/** Parse raw XML and trim whitespace at the beginning and end of text. */
 pub fn parse_trimmed(xml: &str) -> Result<Vec<XmlItem>, quick_xml::Error> {
     let events = get_all_events(xml, true)?;
     Ok(parse_events(events))
 }
 
+/** Parse raw XML. */
 pub fn parse(xml: &str) -> Result<Vec<XmlItem>, quick_xml::Error> {
     let events = get_all_events(xml, false)?;
     Ok(parse_events(events))
