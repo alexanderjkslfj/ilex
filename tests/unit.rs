@@ -222,19 +222,4 @@ mod tests {
 
         assert_eq!(text.get_value().unwrap(), "hey");
     }
-
-    #[test]
-    fn test_set_value() {
-        let xml = "test";
-
-        let mut items = parse(&xml).unwrap();
-
-        let XmlItem::Text(text) = &mut items[0] else {
-            panic!("Test data is corrupt.");
-        };
-
-        text.set_value("works");
-
-        assert_eq!(items_to_string(&items), "works");
-    }
 }

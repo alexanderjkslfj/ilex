@@ -323,8 +323,9 @@ fn set_attribute(start: &mut BytesStart, key: &str, value: &str) -> Result<(), F
     Ok(())
 }
 
+/** Any XML item that is not an element. */
 #[derive(Debug, Clone)]
-enum OtherItem<'a> {
+pub enum Other<'a> {
     Comment(BytesText<'a>),
     Text(BytesText<'a>),
     DocType(BytesText<'a>),
@@ -333,69 +334,29 @@ enum OtherItem<'a> {
     PI(BytesPI<'a>),
 }
 
-/** Any XML item that is not an element. */
-#[derive(Debug, Clone)]
-pub struct Other<'a> {
-    item: OtherItem<'a>,
-}
-
 impl<'a> Other<'a> {
     pub fn new_comment(content: &'a str) -> Self {
-        Other {
-            item: OtherItem::Comment(BytesText::new(content)),
-        }
+        Other::Comment(BytesText::new(content))
     }
 
     pub fn new_text(content: &'a str) -> Self {
-        Other {
-            item: OtherItem::Text(BytesText::new(content)),
-        }
+        Other::Text(BytesText::new(content))
     }
 
     pub fn new_doctype(content: &'a str) -> Self {
-        Other {
-            item: OtherItem::DocType(BytesText::new(content)),
-        }
+        Other::DocType(BytesText::new(content))
     }
 
     pub fn new_cdata(content: &'a str) -> Self {
-        Other {
-            item: OtherItem::CData(BytesCData::new(content)),
-        }
-    }
-
-    pub fn new_decl(version: &str, encoding: Option<&str>, standalone: Option<&str>) -> Self {
-        Other {
-            item: OtherItem::Decl(BytesDecl::new(version, encoding, standalone)),
-        }
+        Other::CData(BytesCData::new(content))
     }
 
     pub fn new_pi(content: &'a str) -> Self {
-        Other {
-            item: OtherItem::PI(BytesPI::new(content)),
-        }
+        Other::PI(BytesPI::new(content))
     }
 
-    /** Change the value of an item.
-    ```rust
-        use ilex_xml::Other;
-
-        let mut text_item = Other::new_text("hello");
-        text_item.set_value("world");
-        assert_eq!("world", text_item.to_string());
-    ```*/
-    pub fn set_value<'b: 'a>(&mut self, value: &'b str) {
-        self.item = match &self.item {
-            OtherItem::Comment(_) => OtherItem::Comment(BytesText::new(value)),
-            OtherItem::Text(_) => OtherItem::Text(BytesText::new(value)),
-            OtherItem::DocType(_) => OtherItem::DocType(BytesText::new(value)),
-            OtherItem::CData(_) => OtherItem::CData(BytesCData::new(value)),
-            OtherItem::Decl(_) => {
-                // TODO: implement
-                panic!("Using set_value on an XML declaration is not yet implemented.");
-            }
-            OtherItem::PI(_) => OtherItem::PI(BytesPI::new(value)),
-        };
+    pub fn new_decl(version: &str, encoding: Option<&str>, standalone: Option<&str>) -> Self {
+        Other::Decl(BytesDecl::new(version, encoding, standalone))
     }
 
     /** Get the value of an item.
@@ -406,24 +367,24 @@ impl<'a> Other<'a> {
         assert_eq!("hello world", text_item.get_value().unwrap());
     ```*/
     pub fn get_value(&self) -> Result<String, FromUtf8Error> {
-        match &self.item {
-            OtherItem::Comment(event) => u8_to_string(event),
-            OtherItem::Text(event) => u8_to_string(event),
-            OtherItem::DocType(event) => u8_to_string(event),
-            OtherItem::CData(event) => u8_to_string(event),
-            OtherItem::Decl(event) => u8_to_string(event),
-            OtherItem::PI(event) => u8_to_string(event),
+        match &self {
+            Other::Comment(event) => u8_to_string(event),
+            Other::Text(event) => u8_to_string(event),
+            Other::DocType(event) => u8_to_string(event),
+            Other::CData(event) => u8_to_string(event),
+            Other::Decl(event) => u8_to_string(event),
+            Other::PI(event) => u8_to_string(event),
         }
     }
 
     fn get_event(&self) -> Event {
-        match &self.item {
-            OtherItem::Comment(event) => Event::Comment(event.to_owned()),
-            OtherItem::Text(event) => Event::Text(event.to_owned()),
-            OtherItem::DocType(event) => Event::DocType(event.to_owned()),
-            OtherItem::CData(event) => Event::CData(event.to_owned()),
-            OtherItem::Decl(event) => Event::Decl(event.to_owned()),
-            OtherItem::PI(event) => Event::PI(event.to_owned()),
+        match &self {
+            Other::Comment(event) => Event::Comment(event.to_owned()),
+            Other::Text(event) => Event::Text(event.to_owned()),
+            Other::DocType(event) => Event::DocType(event.to_owned()),
+            Other::CData(event) => Event::CData(event.to_owned()),
+            Other::Decl(event) => Event::Decl(event.to_owned()),
+            Other::PI(event) => Event::PI(event.to_owned()),
         }
     }
 }
@@ -462,24 +423,12 @@ fn parse_events(events: Vec<Event>) -> Vec<XmlItem> {
     let mut i = 0;
     while i < events.len() {
         match &events[i] {
-            Event::Text(item) => items.push(XmlItem::Text(Other {
-                item: OtherItem::Text(item.to_owned()),
-            })),
-            Event::Comment(item) => items.push(XmlItem::Comment(Other {
-                item: OtherItem::Comment(item.to_owned()),
-            })),
-            Event::CData(item) => items.push(XmlItem::CData(Other {
-                item: OtherItem::CData(item.to_owned()),
-            })),
-            Event::PI(item) => items.push(XmlItem::PI(Other {
-                item: OtherItem::PI(item.to_owned()),
-            })),
-            Event::Decl(item) => items.push(XmlItem::Decl(Other {
-                item: OtherItem::Decl(item.to_owned()),
-            })),
-            Event::DocType(item) => items.push(XmlItem::DocType(Other {
-                item: OtherItem::DocType(item.to_owned()),
-            })),
+            Event::Text(item) => items.push(XmlItem::Text(Other::Text(item.to_owned()))),
+            Event::Comment(item) => items.push(XmlItem::Comment(Other::Comment(item.to_owned()))),
+            Event::CData(item) => items.push(XmlItem::CData(Other::CData(item.to_owned()))),
+            Event::PI(item) => items.push(XmlItem::PI(Other::PI(item.to_owned()))),
+            Event::Decl(item) => items.push(XmlItem::Decl(Other::Decl(item.to_owned()))),
+            Event::DocType(item) => items.push(XmlItem::DocType(Other::DocType(item.to_owned()))),
             Event::Empty(item) => items.push(XmlItem::EmptyElement(EmptyElement {
                 element: item.to_owned(),
             })),
