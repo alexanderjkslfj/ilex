@@ -185,6 +185,12 @@ impl<'a> EmptyElement<'a> {
     pub fn set_name(&mut self, name: &str) {
         self.element.set_name(name.as_bytes());
     }
+
+    pub fn new(name: &'a str) -> Self {
+        EmptyElement {
+            element: BytesStart::new(name),
+        }
+    }
 }
 
 impl Item for EmptyElement<'_> {
@@ -278,6 +284,10 @@ pub struct Other<'a> {
 }
 
 impl<'a> Other<'a> {
+    pub fn new(item: OtherItem<'a>) -> Self {
+        Other { item }
+    }
+
     pub fn get_value(&self) -> Result<String, FromUtf8Error> {
         match &self.item {
             OtherItem::Comment(event) => u8_to_string(event),
