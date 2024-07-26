@@ -80,6 +80,44 @@ impl<'a> Element<'a> {
             children: Vec::new(),
         }
     }
+
+    pub fn get_items_at_depth(&self, depth: usize) -> Vec<&XmlItem> {
+        if depth == 0 {
+            panic!("depth cannot be zero.");
+        }
+        if depth == 1 {
+            return Vec::from_iter(self.children.iter());
+        }
+
+        let mut items = Vec::new();
+
+        for child in &self.children {
+            let XmlItem::Element(element) = child else {
+                continue;
+            };
+            items.append(&mut element.get_items_at_depth(depth - 1));
+        }
+
+        items
+    }
+
+    pub fn get_text_content(&self) -> Result<String, FromUtf8Error> {
+        let mut content = String::new();
+
+        for child in &self.children {
+            match child {
+                XmlItem::Text(text) => {
+                    content.push_str(&text.get_value()?);
+                }
+                XmlItem::Element(element) => {
+                    content.push_str(&element.get_text_content()?);
+                }
+                _ => (),
+            }
+        }
+
+        Ok(content)
+    }
 }
 
 impl Item for Element<'_> {
