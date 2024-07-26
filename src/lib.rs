@@ -52,7 +52,7 @@ trait GetEvents {
 }
 
 /** Used for accessing the tag and attributes of an Element or EmptyElement. */
-pub trait Elem<'a> {
+pub trait Tag<'a> {
     /** Get a map of all attributes. If an attribute occurs multiple times, the last occurence is used. */
     fn get_attributes(&self) -> Result<HashMap<String, String>, FromUtf8Error>;
     /** Get an attribute. */
@@ -176,7 +176,7 @@ impl GetEvents for Element<'_> {
     }
 }
 
-impl<'a> Elem<'a> for Element<'a> {
+impl<'a> Tag<'a> for Element<'a> {
     fn get_attributes(&self) -> Result<HashMap<String, String>, FromUtf8Error> {
         get_attributes(&self.start)
     }
@@ -244,7 +244,7 @@ impl GetEvents for EmptyElement<'_> {
     }
 }
 
-impl<'a> Elem<'a> for EmptyElement<'a> {
+impl<'a> Tag<'a> for EmptyElement<'a> {
     fn get_attributes(&self) -> Result<HashMap<String, String>, FromUtf8Error> {
         get_attributes(&self.element)
     }
