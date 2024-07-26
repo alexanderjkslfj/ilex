@@ -390,7 +390,10 @@ impl<'a> Other<'a> {
             OtherItem::Text(_) => OtherItem::Text(BytesText::new(value)),
             OtherItem::DocType(_) => OtherItem::DocType(BytesText::new(value)),
             OtherItem::CData(_) => OtherItem::CData(BytesCData::new(value)),
-            OtherItem::Decl(_) => OtherItem::Decl(BytesDecl::new("1.0", None, None)), // TODO: improve
+            OtherItem::Decl(_) => {
+                // TODO: implement
+                panic!("Using set_value on an XML declaration is not yet implemented.");
+            }
             OtherItem::PI(_) => OtherItem::PI(BytesPI::new(value)),
         };
     }
