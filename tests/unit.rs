@@ -1,7 +1,6 @@
 #[cfg(test)]
 mod tests {
     use ilex_xml::*;
-    use quick_xml::events::BytesText;
     use std::fs::read_to_string;
 
     #[test]
@@ -168,9 +167,7 @@ mod tests {
 
         element_a
             .children
-            .push(XmlItem::Text(Other::new(OtherItem::Text(BytesText::new(
-                "works",
-            )))));
+            .push(XmlItem::Text(Other::new_text("works")));
 
         let XmlItem::Element(element_b) = &mut items[1] else {
             panic!("Test data is corrupt.");

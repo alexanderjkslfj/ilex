@@ -323,9 +323,8 @@ fn set_attribute(start: &mut BytesStart, key: &str, value: &str) -> Result<(), F
     Ok(())
 }
 
-/** Any XML item that is not an element. */
 #[derive(Debug, Clone)]
-pub enum OtherItem<'a> {
+enum OtherItem<'a> {
     Comment(BytesText<'a>),
     Text(BytesText<'a>),
     DocType(BytesText<'a>),
@@ -334,17 +333,13 @@ pub enum OtherItem<'a> {
     PI(BytesPI<'a>),
 }
 
-/** Wrapper for any XML item that is not an element. */
+/** Any XML item that is not an element. */
 #[derive(Debug, Clone)]
 pub struct Other<'a> {
     item: OtherItem<'a>,
 }
 
 impl<'a> Other<'a> {
-    pub fn new(item: OtherItem<'a>) -> Self {
-        Other { item }
-    }
-
     pub fn new_comment(content: &'a str) -> Self {
         Other {
             item: OtherItem::Comment(BytesText::new(content)),
@@ -383,10 +378,10 @@ impl<'a> Other<'a> {
 
     /** Change the value of an item.
     ```rust
-        use ilex_xml::{Other, OtherItem};
+        use ilex_xml::Other;
         use quick_xml::events::BytesText;
 
-        let mut text_item = Other::new(OtherItem::Text(BytesText::new("hello")));
+        let mut text_item = Other::new_text("hello");
         text_item.set_value("world");
         assert_eq!("world", text_item.to_string());
     ```*/
@@ -403,10 +398,10 @@ impl<'a> Other<'a> {
 
     /** Get the value of an item.
     ```rust
-        use ilex_xml::{Other, OtherItem};
+        use ilex_xml::Other;
         use quick_xml::events::BytesText;
 
-        let text_item = Other::new(OtherItem::Text(BytesText::new("hello world")));
+        let text_item = Other::new_text("hello world");
         assert_eq!("hello world", text_item.get_value().unwrap());
     ```*/
     pub fn get_value(&self) -> Result<String, FromUtf8Error> {

@@ -1,6 +1,6 @@
 [package]
 name = "ilex_xml"
-version = "0.1.0"
+version = "0.2.0"
 
 description = "XML as a tree: Read and write"
 keywords = ["xml", "parser", "writer", "tree", "parsing"]
