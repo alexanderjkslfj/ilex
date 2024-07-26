@@ -28,7 +28,7 @@ pub enum XmlItem<'a> {
     PI(Other<'a>),
 }
 
-pub trait Item {
+trait Item {
     fn get_all_events(&self) -> Vec<Event>;
 }
 
