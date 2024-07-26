@@ -34,13 +34,17 @@ trait Item {
 }
 
 /** Used for managing attributes of an Element or EmptyElement. */
-pub trait Elem {
-    /** Retrieves a map of all attributes. If an attribute occurs multiple times, the last occurence is used. */
+pub trait Elem<'a> {
+    /** Get a map of all attributes. If an attribute occurs multiple times, the last occurence is used. */
     fn get_attributes(&self) -> Result<HashMap<String, String>, FromUtf8Error>;
-    /** Retrieves the attribute. */
+    /** Get an attribute. */
     fn get_attribute(&self, key: &str) -> Result<Option<String>, Error>;
-    /** Adds or replaces an attribute. */
+    /** Add or replace an attribute. */
     fn set_attribute(&mut self, key: &str, value: &str) -> Result<(), FromUtf8Error>;
+    /** Get the tag name. */
+    fn get_name(&self) -> Result<String, FromUtf8Error>;
+    /** Change the tag name. */
+    fn set_name(&mut self, name: &'a str);
 }
 
 /** Stringify a list of XML items.
@@ -82,17 +86,6 @@ impl<'a> Element<'a> {
             end,
             children: Vec::new(),
         }
-    }
-
-    /** Change the tag name of the element ```<name></name>```. */
-    pub fn set_name(&mut self, name: &'a str) {
-        self.start.set_name(name.as_bytes());
-        self.end = BytesEnd::new(name); // TODO: do it without replacing the entire object
-    }
-
-    /** Get the tag name of the element ```<name></name>```. */
-    pub fn get_name(&self) -> Result<String, FromUtf8Error> {
-        qname_to_string(&self.start.name())
     }
 
     /** Get all items at a certain depth within the element.
@@ -175,7 +168,7 @@ impl Item for Element<'_> {
     }
 }
 
-impl Elem for Element<'_> {
+impl<'a> Elem<'a> for Element<'a> {
     fn get_attributes(&self) -> Result<HashMap<String, String>, FromUtf8Error> {
         get_attributes(&self.start)
     }
@@ -186,6 +179,15 @@ impl Elem for Element<'_> {
 
     fn set_attribute(&mut self, key: &str, value: &str) -> Result<(), FromUtf8Error> {
         set_attribute(&mut self.start, key, value)
+    }
+
+    fn set_name(&mut self, name: &'a str) {
+        self.start.set_name(name.as_bytes());
+        self.end = BytesEnd::new(name); // TODO: do it without replacing the entire object
+    }
+
+    fn get_name(&self) -> Result<String, FromUtf8Error> {
+        qname_to_string(&self.start.name())
     }
 }
 
@@ -214,16 +216,6 @@ impl<'a> EmptyElement<'a> {
             element: BytesStart::new(name),
         }
     }
-
-    /** Get the tag name of the element ```<name />```. */
-    pub fn get_name(&self) -> Result<String, FromUtf8Error> {
-        qname_to_string(&self.element.name())
-    }
-
-    /** Change the tag name of the element ```<name />```. */
-    pub fn set_name(&mut self, name: &str) {
-        self.element.set_name(name.as_bytes());
-    }
 }
 
 impl Item for EmptyElement<'_> {
@@ -232,7 +224,7 @@ impl Item for EmptyElement<'_> {
     }
 }
 
-impl Elem for EmptyElement<'_> {
+impl<'a> Elem<'a> for EmptyElement<'a> {
     fn get_attributes(&self) -> Result<HashMap<String, String>, FromUtf8Error> {
         get_attributes(&self.element)
     }
@@ -243,6 +235,14 @@ impl Elem for EmptyElement<'_> {
 
     fn set_attribute(&mut self, key: &str, value: &str) -> Result<(), FromUtf8Error> {
         set_attribute(&mut self.element, key, value)
+    }
+
+    fn get_name(&self) -> Result<String, FromUtf8Error> {
+        qname_to_string(&self.element.name())
+    }
+
+    fn set_name(&mut self, name: &str) {
+        self.element.set_name(name.as_bytes());
     }
 }
 
