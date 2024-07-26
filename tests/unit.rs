@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use ilex::*;
+    use ilex_xml::*;
     use quick_xml::events::BytesText;
     use std::fs::read_to_string;
 
