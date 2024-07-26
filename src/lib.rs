@@ -11,7 +11,7 @@ use quick_xml::{
     Error, Reader, Writer,
 };
 
-/** Any XML item, such as an element ```<element></element>```, a comment ```<!-- comment -->``` or even just some text ```text```. */
+/** Any XML item. */
 #[derive(Debug, Clone)]
 pub enum XmlItem<'a> {
     /** Element ```<tag attr="value">...</tag>```. */
@@ -51,7 +51,7 @@ trait GetEvents {
     fn get_all_events(&self) -> Vec<Event>;
 }
 
-/** Used for managing the tag and attributes of an Element or EmptyElement. */
+/** Used for accessing the tag and attributes of an Element or EmptyElement. */
 pub trait Elem<'a> {
     /** Get a map of all attributes. If an attribute occurs multiple times, the last occurence is used. */
     fn get_attributes(&self) -> Result<HashMap<String, String>, FromUtf8Error>;
@@ -67,7 +67,7 @@ pub trait Elem<'a> {
 
 /** Stringify a list of XML items.
 
-Equivalent to calling to_string on each item and concatenating the results.
+Equivalent to calling ```to_string``` on each item and concatenating the results.
 */
 pub fn items_to_string(items: &[XmlItem]) -> String {
     let mut str = String::new();
@@ -87,7 +87,7 @@ pub fn items_to_string(items: &[XmlItem]) -> String {
     str
 }
 
-/** An XML element ```<element></element>``` */
+/** An XML element: ```<element></element>``` */
 #[derive(Debug, Clone)]
 pub struct Element<'a> {
     start: BytesStart<'a>,
@@ -224,7 +224,7 @@ impl Display for Element<'_> {
     }
 }
 
-/** A self-closing XML element ```<element />```. */
+/** A self-closing XML element: ```<element />``` */
 #[derive(Debug, Clone)]
 pub struct EmptyElement<'a> {
     element: BytesStart<'a>,
