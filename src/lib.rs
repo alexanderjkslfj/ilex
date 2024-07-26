@@ -77,6 +77,11 @@ impl<'a> Element<'a> {
         }
     }
 
+    pub fn set_name(&mut self, name: &'a str) {
+        self.start.set_name(name.as_bytes());
+        self.end = BytesEnd::new(name); // TODO: do it without replacing the entire object
+    }
+
     pub fn get_items_at_depth(&self, depth: usize) -> Vec<&XmlItem> {
         if depth == 0 {
             panic!("depth cannot be zero.");
