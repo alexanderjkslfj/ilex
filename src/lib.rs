@@ -67,10 +67,6 @@ impl<'a> Element<'a> {
         qname_to_string(&self.start.name())
     }
 
-    pub fn set_name(&mut self, name: &str) {
-        self.start.set_name(name.as_bytes());
-    }
-
     pub fn new(name: &'a str) -> Self {
         let start = BytesStart::new(name);
         let end = BytesEnd::new(name);
