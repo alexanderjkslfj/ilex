@@ -29,6 +29,21 @@ pub enum XmlItem<'a> {
     PI(Other<'a>),
 }
 
+impl XmlItem<'_> {
+    fn get_all_events(&self) -> Vec<Event> {
+        match self {
+            XmlItem::Element(element) => element.get_all_events(),
+            XmlItem::EmptyElement(element) => element.get_all_events(),
+            XmlItem::Comment(comment) => comment.get_all_events(),
+            XmlItem::Text(text) => text.get_all_events(),
+            XmlItem::DocType(doctype) => doctype.get_all_events(),
+            XmlItem::CData(cdata) => cdata.get_all_events(),
+            XmlItem::Decl(decl) => decl.get_all_events(),
+            XmlItem::PI(pi) => pi.get_all_events(),
+        }
+    }
+}
+
 trait Item {
     fn get_all_events(&self) -> Vec<Event>;
 }
@@ -148,18 +163,7 @@ impl Item for Element<'_> {
         let mut events = vec![Event::Start(self.start.to_owned())];
 
         for child in &self.children {
-            let mut child_events = match child {
-                XmlItem::Element(element) => element.get_all_events(),
-                XmlItem::EmptyElement(element) => element.get_all_events(),
-                XmlItem::Comment(text) => text.get_all_events(),
-                XmlItem::Text(text) => text.get_all_events(),
-                XmlItem::DocType(text) => text.get_all_events(),
-                XmlItem::CData(text) => text.get_all_events(),
-                XmlItem::Decl(text) => text.get_all_events(),
-                XmlItem::PI(text) => text.get_all_events(),
-            };
-
-            events.append(&mut child_events);
+            events.append(&mut child.get_all_events());
         }
 
         events.push(Event::End(self.end.to_owned()));
