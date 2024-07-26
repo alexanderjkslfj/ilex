@@ -1,4 +1,6 @@
-use std::{collections::HashMap, fmt::Display, io::Cursor, ops::Deref, string::FromUtf8Error};
+use std::{
+    borrow::Cow, collections::HashMap, fmt::Display, io::Cursor, ops::Deref, string::FromUtf8Error,
+};
 
 use quick_xml::{
     events::{
@@ -10,6 +12,7 @@ use quick_xml::{
 };
 
 /** Any XML item, such as an element ```<element></element>```, a comment ```<!-- comment -->``` or even just some text ```text```. */
+#[derive(Debug, Clone)]
 pub enum XmlItem<'a> {
     /** Element ```<tag attr="value">...</tag>```. */
     Element(Element<'a>),
@@ -85,6 +88,7 @@ pub fn items_to_string(items: &[XmlItem]) -> String {
 }
 
 /** An XML element ```<element></element>``` */
+#[derive(Debug, Clone)]
 pub struct Element<'a> {
     start: BytesStart<'a>,
     end: BytesEnd<'a>,
@@ -195,6 +199,17 @@ impl<'a> Elem<'a> for Element<'a> {
     }
 }
 
+impl<'a> From<EmptyElement<'a>> for Element<'a> {
+    fn from(value: EmptyElement<'a>) -> Self {
+        let name = value.get_name().unwrap();
+        Element {
+            start: value.element,
+            end: BytesEnd::new(Cow::from(name)),
+            children: Vec::new(),
+        }
+    }
+}
+
 impl Display for Element<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut writer = Writer::new(Cursor::new(Vec::new()));
@@ -210,6 +225,7 @@ impl Display for Element<'_> {
 }
 
 /** A self-closing XML element ```<element />```. */
+#[derive(Debug, Clone)]
 pub struct EmptyElement<'a> {
     element: BytesStart<'a>,
 }
@@ -308,6 +324,7 @@ fn set_attribute(start: &mut BytesStart, key: &str, value: &str) -> Result<(), F
 }
 
 /** Any XML item that is not an element. */
+#[derive(Debug, Clone)]
 pub enum OtherItem<'a> {
     Comment(BytesText<'a>),
     Text(BytesText<'a>),
@@ -318,6 +335,7 @@ pub enum OtherItem<'a> {
 }
 
 /** Wrapper for any XML item that is not an element. */
+#[derive(Debug, Clone)]
 pub struct Other<'a> {
     item: OtherItem<'a>,
 }
