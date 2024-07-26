@@ -365,7 +365,7 @@ impl<'a> Other<'a> {
 
     /** Change the value of an item.
     ```rust
-        use ilex::{Other, OtherItem};
+        use ilex_xml::{Other, OtherItem};
         use quick_xml::events::BytesText;
 
         let mut text_item = Other::new(OtherItem::Text(BytesText::new("hello")));
@@ -385,7 +385,7 @@ impl<'a> Other<'a> {
 
     /** Get the value of an item.
     ```rust
-        use ilex::{Other, OtherItem};
+        use ilex_xml::{Other, OtherItem};
         use quick_xml::events::BytesText;
 
         let text_item = Other::new(OtherItem::Text(BytesText::new("hello world")));
