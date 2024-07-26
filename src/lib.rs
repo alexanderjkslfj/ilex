@@ -323,6 +323,42 @@ impl<'a> Other<'a> {
         Other { item }
     }
 
+    pub fn new_comment(content: &'a str) -> Self {
+        Other {
+            item: OtherItem::Comment(BytesText::new(content)),
+        }
+    }
+
+    pub fn new_text(content: &'a str) -> Self {
+        Other {
+            item: OtherItem::Text(BytesText::new(content)),
+        }
+    }
+
+    pub fn new_doctype(content: &'a str) -> Self {
+        Other {
+            item: OtherItem::DocType(BytesText::new(content)),
+        }
+    }
+
+    pub fn new_cdata(content: &'a str) -> Self {
+        Other {
+            item: OtherItem::CData(BytesCData::new(content)),
+        }
+    }
+
+    pub fn new_decl(version: &str, encoding: Option<&str>, standalone: Option<&str>) -> Self {
+        Other {
+            item: OtherItem::Decl(BytesDecl::new(version, encoding, standalone)),
+        }
+    }
+
+    pub fn new_pi(content: &'a str) -> Self {
+        Other {
+            item: OtherItem::PI(BytesPI::new(content)),
+        }
+    }
+
     /** Change the value of an item.
     ```rust
         use ilex::{Other, OtherItem};
