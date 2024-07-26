@@ -1,7 +1,20 @@
 [package]
 name = "ilex"
 version = "0.1.0"
+
+description = "XML as a tree: Read and write"
+keywords = ["xml", "parser", "writer", "tree", "parsing"]
+categories = ["parser-implementations"]
+
+license = "MPL-2"
+
 edition = "2021"
+rust-version = "1.65"
+include = ["src/*", "LICENSE", "README.md"]
 
 [dependencies]
 quick-xml = "0.36"
+
+[[test]]
+name = "unit"
+path = "tests/unit.rs"
