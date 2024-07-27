@@ -1,5 +1,11 @@
 # ilex
+
+[![crates.io](https://img.shields.io/crates/v/ilex_xml.svg)](https://crates.io/crates/ilex_xml)
+[![docs](https://img.shields.io/badge/docs-latest-blue)](https://docs.rs/ilex_xml/)
+
 Simple tree structure XML library. Allows reading and writing.
+
+[Documentation](https://docs.rs/ilex_xml/)
 
 ## Example
 ```rust
