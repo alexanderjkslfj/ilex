@@ -1,8 +1,8 @@
 # ilex
-Simple tree structure XML library.
+Simple tree structure XML library. Allows reading and writing.
 
 ## Example
-```Rust
+```rust
 use ilex_xml::{items_to_string, parse_trimmed, Tag, Item};
 
 let xml = r#"
