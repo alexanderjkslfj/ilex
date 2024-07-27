@@ -22,7 +22,7 @@ mod tests {
 
         assert_eq!(items.len(), 1);
 
-        let XmlItem::Element(element) = &items[0] else {
+        let Item::Element(element) = &items[0] else {
             panic!("Test data is corrupt.");
         };
 
@@ -37,7 +37,7 @@ mod tests {
 
         assert_eq!(items.len(), 1);
 
-        let XmlItem::Element(people_element) = &items[0] else {
+        let Item::Element(people_element) = &items[0] else {
             panic!("Test data is corrupt.");
         };
         let people = people_element.get_items_at_depth(1);
@@ -47,16 +47,16 @@ mod tests {
         let mut people_info = Vec::new();
 
         for p in people {
-            let XmlItem::Element(person) = p else {
+            let Item::Element(person) = p else {
                 panic!("Item should be element.");
             };
             let datapoints = person.get_items_at_depth(1);
             assert_eq!(datapoints.len(), 2);
-            let XmlItem::Element(name_element) = datapoints[0] else {
+            let Item::Element(name_element) = datapoints[0] else {
                 panic!("Datapoint should be element.");
             };
             let name = name_element.get_text_content().unwrap();
-            let XmlItem::Element(age_element) = datapoints[1] else {
+            let Item::Element(age_element) = datapoints[1] else {
                 panic!("Datapoint should be element.");
             };
             let age = age_element.get_text_content().unwrap();
@@ -75,7 +75,7 @@ mod tests {
 
         let items = parse_trimmed(&xml).unwrap();
 
-        let XmlItem::Element(item) = &items[2] else {
+        let Item::Element(item) = &items[2] else {
             panic!("Test data is corrupt.");
         };
 
@@ -94,7 +94,7 @@ mod tests {
 
         let items = parse_trimmed(&xml).unwrap();
 
-        let XmlItem::Element(item) = &items[2] else {
+        let Item::Element(item) = &items[2] else {
             panic!("Test data is corrupt.");
         };
 
@@ -110,7 +110,7 @@ mod tests {
 
         let item = &parse(xml).unwrap()[0];
 
-        let XmlItem::Element(element) = item else {
+        let Item::Element(element) = item else {
             panic!("Test data is corrupt.");
         };
 
@@ -125,7 +125,7 @@ mod tests {
 
         let mut items = parse(&xml).unwrap();
 
-        let XmlItem::Element(element) = &mut items[1] else {
+        let Item::Element(element) = &mut items[1] else {
             panic!("Test data is corrupt.");
         };
 
@@ -142,7 +142,7 @@ mod tests {
 
         let mut items = parse(&xml).unwrap();
 
-        let XmlItem::Element(element) = &mut items[1] else {
+        let Item::Element(element) = &mut items[1] else {
             panic!("Test data is corrupt.");
         };
 
@@ -159,23 +159,23 @@ mod tests {
 
         let mut items = parse(&xml).unwrap();
 
-        items.push(XmlItem::Element(Element::new("x")));
+        items.push(Item::Element(Element::new("x")));
 
-        let XmlItem::Element(element_a) = &mut items[0] else {
+        let Item::Element(element_a) = &mut items[0] else {
             panic!("Test data is corrupt.");
         };
 
         element_a
             .children
-            .push(XmlItem::Text(Other::new_text("works")));
+            .push(Item::Text(Other::new_text("works")));
 
-        let XmlItem::Element(element_b) = &mut items[1] else {
+        let Item::Element(element_b) = &mut items[1] else {
             panic!("Test data is corrupt.");
         };
 
         element_b
             .children
-            .push(XmlItem::EmptyElement(EmptyElement::new("z")));
+            .push(Item::EmptyElement(EmptyElement::new("z")));
 
         let modified_xml = items_to_string(&items);
 
@@ -188,7 +188,7 @@ mod tests {
 
         let item = &parse(&xml).unwrap()[0];
 
-        let XmlItem::Element(element) = item else {
+        let Item::Element(element) = item else {
             panic!("Test data is corrupt.");
         };
 
@@ -201,7 +201,7 @@ mod tests {
 
         let mut items = parse(&xml).unwrap();
 
-        let XmlItem::Element(element) = &mut items[0] else {
+        let Item::Element(element) = &mut items[0] else {
             panic!("Test data is corrupt.");
         };
 
@@ -216,7 +216,7 @@ mod tests {
 
         let items = parse(&xml).unwrap();
 
-        let XmlItem::Text(text) = &items[0] else {
+        let Item::Text(text) = &items[0] else {
             panic!("Test data is corrupt.");
         };
 

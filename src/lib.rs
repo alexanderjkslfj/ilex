@@ -13,7 +13,7 @@ use quick_xml::{
 
 /** Any XML item. */
 #[derive(Debug, Clone)]
-pub enum XmlItem<'a> {
+pub enum Item<'a> {
     /** Element ```<tag attr="value">...</tag>```. */
     Element(Element<'a>),
     /** Empty element ```<tag attr="value" />```. */
@@ -32,32 +32,32 @@ pub enum XmlItem<'a> {
     PI(Other<'a>),
 }
 
-impl XmlItem<'_> {
+impl Item<'_> {
     fn get_all_events(&self) -> Vec<Event> {
         match self {
-            XmlItem::Element(element) => element.get_all_events(),
-            XmlItem::EmptyElement(element) => element.get_all_events(),
-            XmlItem::Comment(comment) => comment.get_all_events(),
-            XmlItem::Text(text) => text.get_all_events(),
-            XmlItem::DocType(doctype) => doctype.get_all_events(),
-            XmlItem::CData(cdata) => cdata.get_all_events(),
-            XmlItem::Decl(decl) => decl.get_all_events(),
-            XmlItem::PI(pi) => pi.get_all_events(),
+            Item::Element(element) => element.get_all_events(),
+            Item::EmptyElement(element) => element.get_all_events(),
+            Item::Comment(comment) => comment.get_all_events(),
+            Item::Text(text) => text.get_all_events(),
+            Item::DocType(doctype) => doctype.get_all_events(),
+            Item::CData(cdata) => cdata.get_all_events(),
+            Item::Decl(decl) => decl.get_all_events(),
+            Item::PI(pi) => pi.get_all_events(),
         }
     }
 }
 
-impl Display for XmlItem<'_> {
+impl Display for Item<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            XmlItem::Element(element) => element.fmt(f),
-            XmlItem::EmptyElement(element) => element.fmt(f),
-            XmlItem::Comment(comment) => comment.fmt(f),
-            XmlItem::Text(text) => text.fmt(f),
-            XmlItem::DocType(doctype) => doctype.fmt(f),
-            XmlItem::CData(cdata) => cdata.fmt(f),
-            XmlItem::Decl(decl) => decl.fmt(f),
-            XmlItem::PI(pi) => pi.fmt(f),
+            Item::Element(element) => element.fmt(f),
+            Item::EmptyElement(element) => element.fmt(f),
+            Item::Comment(comment) => comment.fmt(f),
+            Item::Text(text) => text.fmt(f),
+            Item::DocType(doctype) => doctype.fmt(f),
+            Item::CData(cdata) => cdata.fmt(f),
+            Item::Decl(decl) => decl.fmt(f),
+            Item::PI(pi) => pi.fmt(f),
         }
     }
 }
@@ -84,18 +84,18 @@ pub trait Tag<'a> {
 
 Equivalent to calling ```to_string``` on each item and concatenating the results.
 */
-pub fn items_to_string(items: &[XmlItem]) -> String {
+pub fn items_to_string(items: &[Item]) -> String {
     let mut str = String::new();
     for item in items {
         let item_str = match &item {
-            XmlItem::Text(text) => text.to_string(),
-            XmlItem::Comment(text) => text.to_string(),
-            XmlItem::CData(text) => text.to_string(),
-            XmlItem::PI(text) => text.to_string(),
-            XmlItem::Decl(text) => text.to_string(),
-            XmlItem::DocType(text) => text.to_string(),
-            XmlItem::Element(text) => text.to_string(),
-            XmlItem::EmptyElement(text) => text.to_string(),
+            Item::Text(text) => text.to_string(),
+            Item::Comment(text) => text.to_string(),
+            Item::CData(text) => text.to_string(),
+            Item::PI(text) => text.to_string(),
+            Item::Decl(text) => text.to_string(),
+            Item::DocType(text) => text.to_string(),
+            Item::Element(text) => text.to_string(),
+            Item::EmptyElement(text) => text.to_string(),
         };
         str.push_str(&item_str);
     }
@@ -108,7 +108,7 @@ pub struct Element<'a> {
     start: BytesStart<'a>,
     end: BytesEnd<'a>,
     /** All items contained within the element. */
-    pub children: Vec<XmlItem<'a>>,
+    pub children: Vec<Item<'a>>,
 }
 
 impl<'a> Element<'a> {
@@ -132,7 +132,7 @@ impl<'a> Element<'a> {
         </item>
     </element>
     ```*/
-    pub fn get_items_at_depth(&self, depth: usize) -> Vec<&XmlItem> {
+    pub fn get_items_at_depth(&self, depth: usize) -> Vec<&Item> {
         if depth == 0 {
             panic!("depth cannot be zero.");
         }
@@ -143,7 +143,7 @@ impl<'a> Element<'a> {
         let mut items = Vec::new();
 
         for child in &self.children {
-            let XmlItem::Element(element) = child else {
+            let Item::Element(element) = child else {
                 continue;
             };
             items.append(&mut element.get_items_at_depth(depth - 1));
@@ -163,10 +163,10 @@ impl<'a> Element<'a> {
 
         for child in &self.children {
             match child {
-                XmlItem::Text(text) => {
+                Item::Text(text) => {
                     content.push_str(&text.get_value()?);
                 }
-                XmlItem::Element(element) => {
+                Item::Element(element) => {
                     content.push_str(&element.get_text_content()?);
                 }
                 _ => (),
@@ -421,30 +421,30 @@ impl Display for Other<'_> {
 }
 
 /** Parse raw XML and trim whitespace at the beginning and end of text. */
-pub fn parse_trimmed(xml: &str) -> Result<Vec<XmlItem>, quick_xml::Error> {
+pub fn parse_trimmed(xml: &str) -> Result<Vec<Item>, quick_xml::Error> {
     let events = get_all_events(xml, true)?;
     Ok(parse_events(events))
 }
 
 /** Parse raw XML. */
-pub fn parse(xml: &str) -> Result<Vec<XmlItem>, quick_xml::Error> {
+pub fn parse(xml: &str) -> Result<Vec<Item>, quick_xml::Error> {
     let events = get_all_events(xml, false)?;
     Ok(parse_events(events))
 }
 
-fn parse_events(events: Vec<Event>) -> Vec<XmlItem> {
+fn parse_events(events: Vec<Event>) -> Vec<Item> {
     let mut items = Vec::new();
 
     let mut i = 0;
     while i < events.len() {
         match &events[i] {
-            Event::Text(item) => items.push(XmlItem::Text(Other::Text(item.to_owned()))),
-            Event::Comment(item) => items.push(XmlItem::Comment(Other::Comment(item.to_owned()))),
-            Event::CData(item) => items.push(XmlItem::CData(Other::CData(item.to_owned()))),
-            Event::PI(item) => items.push(XmlItem::PI(Other::PI(item.to_owned()))),
-            Event::Decl(item) => items.push(XmlItem::Decl(Other::Decl(item.to_owned()))),
-            Event::DocType(item) => items.push(XmlItem::DocType(Other::DocType(item.to_owned()))),
-            Event::Empty(item) => items.push(XmlItem::EmptyElement(EmptyElement {
+            Event::Text(item) => items.push(Item::Text(Other::Text(item.to_owned()))),
+            Event::Comment(item) => items.push(Item::Comment(Other::Comment(item.to_owned()))),
+            Event::CData(item) => items.push(Item::CData(Other::CData(item.to_owned()))),
+            Event::PI(item) => items.push(Item::PI(Other::PI(item.to_owned()))),
+            Event::Decl(item) => items.push(Item::Decl(Other::Decl(item.to_owned()))),
+            Event::DocType(item) => items.push(Item::DocType(Other::DocType(item.to_owned()))),
+            Event::Empty(item) => items.push(Item::EmptyElement(EmptyElement {
                 element: item.to_owned(),
             })),
             Event::Start(start) => {
@@ -467,7 +467,7 @@ fn parse_events(events: Vec<Event>) -> Vec<XmlItem> {
                     }
                     sub_events.push(event.to_owned());
                 };
-                items.push(XmlItem::Element(Element {
+                items.push(Item::Element(Element {
                     start: start.to_owned(),
                     end,
                     children: parse_events(sub_events),
