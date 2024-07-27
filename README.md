@@ -3,7 +3,7 @@ Simple tree structure XML library.
 
 ## Example
 ```Rust
-use ilex_xml::{items_to_string, parse_trimmed, Other, Tag, Item};
+use ilex_xml::{items_to_string, parse_trimmed, Tag, Item};
 
 let xml = r#"
     <!-- The cat is cute. -->
@@ -53,7 +53,7 @@ println!("Hey, their name isn't Bob! It's Peter!");
     // Remove the wrong name
     child.children.remove(0);
     // Add the correct name
-    child.children.push(Item::Text(Other::new_text("Peter")));
+    child.children.push(Item::new_text("Peter"));
 
     println!(
         "Lets take another look at the raw XML, now that the name is fixed: {}",

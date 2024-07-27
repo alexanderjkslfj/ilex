@@ -32,7 +32,7 @@ pub enum Item<'a> {
     PI(Other<'a>),
 }
 
-impl Item<'_> {
+impl<'a> Item<'a> {
     fn get_all_events(&self) -> Vec<Event> {
         match self {
             Item::Element(element) => element.get_all_events(),
@@ -44,6 +44,38 @@ impl Item<'_> {
             Item::Decl(decl) => decl.get_all_events(),
             Item::PI(pi) => pi.get_all_events(),
         }
+    }
+
+    pub fn new_element(name: &'a str) -> Self {
+        Item::Element(Element::new(name))
+    }
+
+    pub fn new_empty_element(name: &'a str) -> Self {
+        Item::EmptyElement(EmptyElement::new(name))
+    }
+
+    pub fn new_comment(content: &'a str) -> Self {
+        Item::Comment(Other::new_comment(content))
+    }
+
+    pub fn new_text(content: &'a str) -> Self {
+        Item::Text(Other::new_text(content))
+    }
+
+    pub fn new_doctype(content: &'a str) -> Self {
+        Item::DocType(Other::new_doctype(content))
+    }
+
+    pub fn new_cdata(content: &'a str) -> Self {
+        Item::CData(Other::new_cdata(content))
+    }
+
+    pub fn new_decl(version: &str, encoding: Option<&str>, standalone: Option<&str>) -> Self {
+        Item::Decl(Other::new_decl(version, encoding, standalone))
+    }
+
+    pub fn new_pi(content: &'a str) -> Self {
+        Item::PI(Other::new_pi(content))
     }
 }
 
