@@ -47,6 +47,21 @@ impl XmlItem<'_> {
     }
 }
 
+impl Display for XmlItem<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            XmlItem::Element(element) => element.fmt(f),
+            XmlItem::EmptyElement(element) => element.fmt(f),
+            XmlItem::Comment(comment) => comment.fmt(f),
+            XmlItem::Text(text) => text.fmt(f),
+            XmlItem::DocType(doctype) => doctype.fmt(f),
+            XmlItem::CData(cdata) => cdata.fmt(f),
+            XmlItem::Decl(decl) => decl.fmt(f),
+            XmlItem::PI(pi) => pi.fmt(f),
+        }
+    }
+}
+
 trait GetEvents {
     fn get_all_events(&self) -> Vec<Event>;
 }
