@@ -24,7 +24,7 @@ let mut items = parse_trimmed(xml).unwrap();
 { // Get comment content
     let Item::Comment(comment) = &items[0] else {
         panic!(
-            "Huh, odd. Let's look at the first element's raw XML: {}",
+            "Huh, odd. Let's look at the first item's raw XML: {}",
             items[0]
         );
     };
