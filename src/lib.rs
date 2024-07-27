@@ -98,7 +98,7 @@ trait GetEvents {
     fn get_all_events(&self) -> Vec<Event>;
 }
 
-/** Used for accessing the tag and attributes of an Element or EmptyElement. */
+/** Used for accessing the name and attributes of an Element or EmptyElement. */
 pub trait Tag<'a> {
     /** Get a map of all attributes. If an attribute occurs multiple times, the last occurence is used. */
     fn get_attributes(&self) -> Result<HashMap<String, String>, FromUtf8Error>;
