@@ -8,8 +8,10 @@ use quick_xml::{
         Event,
     },
     name::QName,
-    Error, Reader, Writer,
+    Reader, Writer,
 };
+
+pub use quick_xml::Error;
 
 /** Any XML item. */
 #[derive(Debug, Clone)]
@@ -450,6 +452,7 @@ impl<'a> Other<'a> {
         let comment = Other::new_comment("hello world");
         let value = comment.get_value().unwrap();
         assert_eq!(value, "hello world");
+        # Ok::<(), std::string::FromUtf8Error>(())
     ```*/
     pub fn get_value(&self) -> Result<String, FromUtf8Error> {
         match &self {
