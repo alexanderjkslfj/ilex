@@ -159,7 +159,7 @@ impl<'a> Element<'a> {
     // Example of finding all elements with tag name "a":
     let xml = "<element><a></a><b><a></a></b><c>text</c></element>";
 
-    use ilex_xml::*;
+    # use ilex_xml::*;
     let Item::Element(element) = &parse(&xml).unwrap()[0] else {
         panic!();
     };
@@ -446,10 +446,10 @@ impl<'a> Other<'a> {
 
     /** Get the value of an item.
     ```rust
-        use ilex_xml::Other;
-
-        let text_item = Other::new_text("hello world");
-        assert_eq!("hello world", text_item.get_value().unwrap());
+        # use ilex_xml::Other;
+        let comment = Other::new_comment("hello world");
+        let value = comment.get_value().unwrap();
+        assert_eq!(value, "hello world");
     ```*/
     pub fn get_value(&self) -> Result<String, FromUtf8Error> {
         match &self {
