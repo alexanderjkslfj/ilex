@@ -154,6 +154,44 @@ impl<'a> Element<'a> {
         }
     }
 
+    /** Get all descendants matching the predicate.
+    ```rust
+    // Example of finding all elements with tag name "a":
+    let xml = "<element><a></a><b><a></a></b><c>text</c></element>";
+
+    use ilex_xml::*;
+    let Item::Element(element) = &parse(&xml).unwrap()[0] else {
+        panic!();
+    };
+
+    let a_elements = element.find_descendants(&|item| {
+        let Item::Element(el) = item else {
+            return false;
+        };
+        el.get_name().unwrap() == "a"
+    });
+
+    assert_eq!(a_elements.len(), 2);
+    ```*/
+    pub fn find_descendants(&self, predicate: &impl Fn(&Item) -> bool) -> Vec<&Item> {
+        println!("{}", self.get_name().unwrap());
+
+        let mut result: Vec<&Item<'_>> = self
+            .children
+            .iter()
+            .filter(|item| predicate(item))
+            .collect();
+
+        for child in &self.children {
+            let Item::Element(element) = child else {
+                continue;
+            };
+            result.append(&mut element.find_descendants(predicate));
+        }
+
+        result
+    }
+
     /** Get all items at a certain depth within the element.
     ```xml
     <element>

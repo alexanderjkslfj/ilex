@@ -222,4 +222,26 @@ mod tests {
 
         assert_eq!(text.get_value().unwrap(), "hey");
     }
+
+    #[test]
+    fn test_find_descendants() {
+        let xml =
+            r#"<a key="1"><b key="1"/><c key="0"/><d key="0"><e key="1">Some Text</e></d></a>"#;
+
+        let items = parse(&xml).unwrap();
+
+        let Item::Element(a) = &items[0] else {
+            panic!("Test data is corrupt.");
+        };
+
+        let descs = a.find_descendants(&|item| match item {
+            Item::EmptyElement(el) => el.get_attribute("key").unwrap().unwrap() == "1",
+            Item::Element(el) => el.get_attribute("key").unwrap().unwrap() == "1",
+            _ => false,
+        });
+
+        assert_eq!(descs.len(), 2);
+        assert_eq!(descs[0].to_string(), r#"<b key="1"/>"#);
+        assert_eq!(descs[1].to_string(), r#"<e key="1">Some Text</e>"#);
+    }
 }
