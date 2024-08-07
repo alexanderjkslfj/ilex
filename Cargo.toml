@@ -18,5 +18,5 @@ include = ["src/*", "LICENSE", "README.md"]
 quick-xml = "0.36"
 
 [[test]]
-name = "unit"
-path = "tests/unit.rs"
+name = "general"
+path = "tests/general.rs"
