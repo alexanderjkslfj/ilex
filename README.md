@@ -51,13 +51,15 @@ let Item::Element(parent) = &mut items[1] else {
 
 println!("Hey, their name isn't Bob! It's Peter!");
 
-{ // Replace child
+{ // Change child
+
+    // Get child
     let Item::Element(child) = &mut parent.children[1] else {
         panic!();
     };
 
     // Remove the wrong name
-    child.children.remove(0);
+    child.children.pop();
     // Add the correct name
     child.children.push(Item::new_text("Peter"));
 
@@ -65,5 +67,6 @@ println!("Hey, their name isn't Bob! It's Peter!");
         "Lets take another look at the raw XML, now that the name is fixed: {}",
         items_to_string(&items)
     );
+
 }
 ```
