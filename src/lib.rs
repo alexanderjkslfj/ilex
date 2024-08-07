@@ -162,7 +162,7 @@ impl<'a> Element<'a> {
     let xml = "<element><a></a><b><a></a></b><c>text</c></element>";
 
     # use ilex_xml::*;
-    let Item::Element(element) = &parse(&xml).unwrap()[0] else {
+    let Item::Element(element) = &parse(&xml)?[0] else {
         panic!();
     };
 
@@ -174,6 +174,7 @@ impl<'a> Element<'a> {
     });
 
     assert_eq!(a_elements.len(), 2);
+    # Ok::<(), Error>(())
     ```*/
     pub fn find_descendants(&self, predicate: &impl Fn(&Item) -> bool) -> Vec<&Item> {
         println!("{}", self.get_name().unwrap());
@@ -450,7 +451,7 @@ impl<'a> Other<'a> {
     ```rust
         # use ilex_xml::Other;
         let comment = Other::new_comment("hello world");
-        let value = comment.get_value().unwrap();
+        let value = comment.get_value()?;
         assert_eq!(value, "hello world");
         # Ok::<(), std::string::FromUtf8Error>(())
     ```*/
