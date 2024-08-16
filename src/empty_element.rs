@@ -12,7 +12,7 @@ use crate::{
 };
 
 /** A self-closing XML element: ```<element />``` */
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct EmptyElement<'a> {
     pub(crate) element: BytesStart<'a>,
 }

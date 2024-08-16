@@ -5,7 +5,7 @@ use quick_xml::events::Event;
 use crate::{traits::GetEvents, Element, EmptyElement, Other};
 
 /** Any XML item. */
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Item<'a> {
     /** Element ```<tag attr="value">...</tag>```. */
     Element(Element<'a>),

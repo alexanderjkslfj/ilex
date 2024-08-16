@@ -1,11 +1,14 @@
 use std::{fmt::Display, io::Cursor, string::FromUtf8Error};
 
-use quick_xml::{events::{BytesCData, BytesDecl, BytesPI, BytesText, Event}, Writer};
+use quick_xml::{
+    events::{BytesCData, BytesDecl, BytesPI, BytesText, Event},
+    Writer,
+};
 
 use crate::{traits::GetEvents, util::u8_to_string};
 
 /** Any XML item that is not an element. */
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Other<'a> {
     Comment(BytesText<'a>),
     Text(BytesText<'a>),

@@ -5,7 +5,7 @@ use quick_xml::{events::{BytesEnd, BytesStart, Event}, Writer};
 use crate::{traits::GetEvents, util::{get_attribute, get_attributes, qname_to_string, set_attribute}, EmptyElement, Error, Item, Tag};
 
 /** An XML element: ```<element></element>``` */
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Element<'a> {
     pub(crate) start: BytesStart<'a>,
     pub(crate) end: BytesEnd<'a>,
