@@ -1,8 +1,15 @@
 use std::{borrow::Cow, collections::HashMap, fmt::Display, io::Cursor, string::FromUtf8Error};
 
-use quick_xml::{events::{BytesEnd, BytesStart, Event}, Writer};
+use quick_xml::{
+    events::{BytesEnd, BytesStart, Event},
+    Writer,
+};
 
-use crate::{traits::GetEvents, util::{get_attribute, get_attributes, qname_to_string, set_attribute}, EmptyElement, Error, Item, Tag};
+use crate::{
+    traits::GetEvents,
+    util::{get_attribute, get_attributes, qname_to_string, set_attribute},
+    EmptyElement, Error, Item, Tag,
+};
 
 /** An XML element: ```<element></element>``` */
 #[derive(Debug, Clone, PartialEq, Eq)]

@@ -2,7 +2,10 @@ use std::{collections::HashMap, string::FromUtf8Error};
 
 use crate::Error;
 
-use quick_xml::{events::{attributes::Attribute, BytesStart}, name::QName};
+use quick_xml::{
+    events::{attributes::Attribute, BytesStart},
+    name::QName,
+};
 
 pub fn qname_to_string(qname: &QName) -> Result<String, FromUtf8Error> {
     u8_to_string(qname.as_ref())
