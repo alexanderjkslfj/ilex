@@ -52,8 +52,6 @@ impl<'a> Element<'a> {
     # Ok::<(), Error>(())
     ```*/
     pub fn find_descendants(&self, predicate: &impl Fn(&Item) -> bool) -> Vec<&Item> {
-        println!("{}", self.get_name().unwrap());
-
         let mut result: Vec<&Item<'_>> = self
             .children
             .iter()
