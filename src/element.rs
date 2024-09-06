@@ -53,28 +53,23 @@ impl<'a> Element<'a> {
     ```*/
     pub fn find_descendants(&self, predicate: &impl Fn(&Item) -> bool) -> Vec<&Item> {
         // get direct children matching the predicate
-        let mut result: Vec<&Item<'_>> = self
-            .children
-            .iter()
-            .filter(|item| predicate(item))
-            .collect();
+        let matching_children = self.children.iter().filter(|item| predicate(item));
 
         // get deeper descendants matching the predicate
-        result.extend(
-            self.children
-                .iter()
-                // select only the children which are elements (and can therefore have deeper descendants)
-                .filter_map(|child| match child {
-                    Item::Element(element) => Some(element),
-                    _ => None,
-                })
-                // get the children's descendants matching the predicate (recursively)
-                .map(|child| child.find_descendants(predicate))
-                // flatten from [[item, item], [item]] to [item, item, item]
-                .flatten(),
-        );
+        let matching_descendants = self
+            .children
+            .iter()
+            // select only the children which are elements (and can therefore have deeper descendants)
+            .filter_map(|child| match child {
+                Item::Element(element) => Some(element),
+                _ => None,
+            })
+            // get the children's descendants matching the predicate (recursively)
+            .map(|child| child.find_descendants(predicate))
+            // flatten from [[item, item], [item]] to [item, item, item]
+            .flatten();
 
-        result
+        Iterator::chain(matching_children, matching_descendants).collect()
     }
 
     /** Get all items at a certain depth within the element.
