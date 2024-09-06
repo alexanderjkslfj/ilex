@@ -52,18 +52,27 @@ impl<'a> Element<'a> {
     # Ok::<(), Error>(())
     ```*/
     pub fn find_descendants(&self, predicate: &impl Fn(&Item) -> bool) -> Vec<&Item> {
+        // get direct children matching the predicate
         let mut result: Vec<&Item<'_>> = self
             .children
             .iter()
             .filter(|item| predicate(item))
             .collect();
 
-        for child in &self.children {
-            let Item::Element(element) = child else {
-                continue;
-            };
-            result.append(&mut element.find_descendants(predicate));
-        }
+        // get deeper descendants matching the predicate
+        result.extend(
+            self.children
+                .iter()
+                // select only the children which are elements (and can therefore have deeper descendants)
+                .filter_map(|child| match child {
+                    Item::Element(element) => Some(element),
+                    _ => None,
+                })
+                // get the children's descendants matching the predicate (recursively)
+                .map(|child| child.find_descendants(predicate))
+                // flatten from [[item, item], [item]] to [item, item, item]
+                .flatten(),
+        );
 
         result
     }
@@ -79,23 +88,25 @@ impl<'a> Element<'a> {
     </element>
     ```*/
     pub fn get_items_at_depth(&self, depth: usize) -> Vec<&Item> {
-        if depth == 0 {
-            panic!("depth cannot be zero.");
-        }
         if depth == 1 {
             return Vec::from_iter(self.children.iter());
         }
-
-        let mut items = Vec::new();
-
-        for child in &self.children {
-            let Item::Element(element) = child else {
-                continue;
-            };
-            items.append(&mut element.get_items_at_depth(depth - 1));
+        if depth == 0 {
+            panic!("depth cannot be zero.");
         }
 
-        items
+        self.children
+            .iter()
+            // select only the children which are elements (and can therefore go deeper)
+            .filter_map(|item| match item {
+                Item::Element(element) => Some(element),
+                _ => None,
+            })
+            // get the deeper items (recursively)
+            .map(|element| element.get_items_at_depth(depth - 1))
+            // flatten from [[item, item], [item]] to [item, item, item]
+            .flatten()
+            .collect()
     }
 
     /** Get the text content of all text items within the element.
