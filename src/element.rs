@@ -48,10 +48,13 @@ impl<'a> Element<'a> {
         el.get_name().unwrap() == "a"
     });
 
-    assert_eq!(a_elements.len(), 2);
+    assert_eq!(a_elements.count(), 2);
     # Ok::<(), Error>(())
     ```*/
-    pub fn find_descendants(&self, predicate: &impl Fn(&Item) -> bool) -> Vec<&Item> {
+    pub fn find_descendants(
+        &self,
+        predicate: &'a impl Fn(&Item) -> bool,
+    ) -> Box<dyn Iterator<Item = &Item> + '_> {
         // get direct children matching the predicate
         let matching_children = self.children.iter().filter(|item| predicate(item));
 
@@ -65,11 +68,11 @@ impl<'a> Element<'a> {
                 _ => None,
             })
             // get the children's descendants matching the predicate (recursively)
-            .map(|child| child.find_descendants(predicate))
-            // flatten from [[item, item], [item]] to [item, item, item]
-            .flatten();
+            .flat_map(|child| child.find_descendants(predicate));
 
-        Iterator::chain(matching_children, matching_descendants).collect()
+        let chain = Iterator::chain(matching_children, matching_descendants);
+
+        Box::new(chain)
     }
 
     /** Get all items at a certain depth within the element.
@@ -82,15 +85,16 @@ impl<'a> Element<'a> {
         </item>
     </element>
     ```*/
-    pub fn get_items_at_depth(&self, depth: usize) -> Vec<&Item> {
+    pub fn get_items_at_depth(&self, depth: usize) -> Box<dyn Iterator<Item = &Item> + '_> {
         if depth == 1 {
-            return Vec::from_iter(self.children.iter());
+            return Box::new(self.children.iter());
         }
         if depth == 0 {
             panic!("depth cannot be zero.");
         }
 
-        self.children
+        let items = self
+            .children
             .iter()
             // select only the children which are elements (and can therefore go deeper)
             .filter_map(|item| match item {
@@ -98,10 +102,9 @@ impl<'a> Element<'a> {
                 _ => None,
             })
             // get the deeper items (recursively)
-            .map(|element| element.get_items_at_depth(depth - 1))
-            // flatten from [[item, item], [item]] to [item, item, item]
-            .flatten()
-            .collect()
+            .flat_map(move |element| element.get_items_at_depth(depth - 1));
+
+        Box::new(items)
     }
 
     /** Get the text content of all text items within the element.

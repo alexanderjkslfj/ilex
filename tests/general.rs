@@ -40,7 +40,7 @@ mod tests {
         let Item::Element(people_element) = &items[0] else {
             panic!("Test data is corrupt.");
         };
-        let people = people_element.get_items_at_depth(1);
+        let people: Vec<_> = people_element.get_items_at_depth(1).collect();
 
         assert_eq!(people.len(), 2);
 
@@ -50,7 +50,7 @@ mod tests {
             let Item::Element(person) = p else {
                 panic!("Item should be element.");
             };
-            let datapoints = person.get_items_at_depth(1);
+            let datapoints: Vec<_> = person.get_items_at_depth(1).collect();
             assert_eq!(datapoints.len(), 2);
             let Item::Element(name_element) = datapoints[0] else {
                 panic!("Datapoint should be element.");
@@ -234,11 +234,13 @@ mod tests {
             panic!("Test data is corrupt.");
         };
 
-        let descs = a.find_descendants(&|item| match item {
+        let desc_it = a.find_descendants(&|item| match item {
             Item::EmptyElement(el) => el.get_attribute("key").unwrap().unwrap() == "1",
             Item::Element(el) => el.get_attribute("key").unwrap().unwrap() == "1",
             _ => false,
         });
+
+        let descs: Vec<_> = desc_it.collect();
 
         assert_eq!(descs.len(), 2);
         assert_eq!(descs[0].to_string(), r#"<b key="1"/>"#);
