@@ -58,8 +58,8 @@ impl Display for EmptyElement<'_> {
 }
 
 impl GetEvents for EmptyElement<'_> {
-    fn get_all_events(&self) -> Vec<Event> {
-        vec![Event::Empty(self.element.to_owned())]
+    fn get_all_events(&self) -> Box<dyn Iterator<Item = Event> + '_> {
+        Box::new(std::iter::once(Event::Empty(self.element.to_owned())))
     }
 }
 

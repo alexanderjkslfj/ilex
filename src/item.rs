@@ -75,7 +75,7 @@ impl Display for Item<'_> {
 }
 
 impl GetEvents for Item<'_> {
-    fn get_all_events(&self) -> Vec<Event> {
+    fn get_all_events(&self) -> Box<dyn Iterator<Item = Event> + '_> {
         match self {
             Item::Element(element) => element.get_all_events(),
             Item::EmptyElement(element) => element.get_all_events(),

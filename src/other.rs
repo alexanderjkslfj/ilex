@@ -85,7 +85,7 @@ impl Display for Other<'_> {
 }
 
 impl GetEvents for Other<'_> {
-    fn get_all_events(&self) -> Vec<Event> {
-        vec![self.get_event()]
+    fn get_all_events(&self) -> Box<dyn Iterator<Item = Event> + '_> {
+        Box::new(std::iter::once(self.get_event()))
     }
 }

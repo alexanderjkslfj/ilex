@@ -5,7 +5,7 @@ use quick_xml::events::Event;
 use crate::Error;
 
 pub trait GetEvents {
-    fn get_all_events(&self) -> Vec<Event>;
+    fn get_all_events(&self) -> Box<dyn Iterator<Item = Event> + '_>;
 }
 
 /** Used for accessing the name and attributes of an Element or EmptyElement. */

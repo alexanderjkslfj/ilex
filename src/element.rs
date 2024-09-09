@@ -181,15 +181,17 @@ impl Display for Element<'_> {
 }
 
 impl GetEvents for Element<'_> {
-    fn get_all_events(&self) -> Vec<Event> {
-        let mut events = vec![Event::Start(self.start.to_owned())];
+    fn get_all_events(&self) -> Box<dyn Iterator<Item = Event> + '_> {
+        let start_event = std::iter::once(Event::Start(self.start.to_owned()));
+        let end_event = std::iter::once(Event::End(self.end.to_owned()));
 
-        for child in &self.children {
-            events.append(&mut child.get_all_events());
-        }
+        let child_events = self
+            .children
+            .iter()
+            .flat_map(|child| child.get_all_events());
 
-        events.push(Event::End(self.end.to_owned()));
+        let events = start_event.chain(child_events.chain(end_event));
 
-        events
+        Box::new(events)
     }
 }
