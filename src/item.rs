@@ -2,15 +2,13 @@ use std::fmt::Display;
 
 use quick_xml::events::Event;
 
-use crate::{traits::GetEvents, Element, EmptyElement, Other};
+use crate::{traits::GetEvents, Element, Other};
 
 /** Any XML item. */
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Item<'a> {
-    /** Element ```<tag attr="value">...</tag>```. */
+    /** Element ```<tag attr="value">...</tag>``` or ```<tag attr="value" />```. */
     Element(Element<'a>),
-    /** Empty element ```<tag attr="value" />```. */
-    EmptyElement(EmptyElement<'a>),
     /** Comment ```<!-- ... -->```. */
     Comment(Other<'a>),
     /** Escaped character data between tags. */
@@ -26,12 +24,8 @@ pub enum Item<'a> {
 }
 
 impl<'a> Item<'a> {
-    pub fn new_element(name: &'a str) -> Self {
-        Item::Element(Element::new(name))
-    }
-
-    pub fn new_empty_element(name: &'a str) -> Self {
-        Item::EmptyElement(EmptyElement::new(name))
+    pub fn new_element(name: &'a str, self_closing: bool) -> Self {
+        Item::Element(Element::new(name, self_closing))
     }
 
     pub fn new_comment(content: &'a str) -> Self {
@@ -63,7 +57,6 @@ impl Display for Item<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Item::Element(element) => element.fmt(f),
-            Item::EmptyElement(element) => element.fmt(f),
             Item::Comment(comment) => comment.fmt(f),
             Item::Text(text) => text.fmt(f),
             Item::DocType(doctype) => doctype.fmt(f),
@@ -78,7 +71,6 @@ impl GetEvents for Item<'_> {
     fn get_all_events(&self) -> Box<dyn Iterator<Item = Event> + '_> {
         match self {
             Item::Element(element) => element.get_all_events(),
-            Item::EmptyElement(element) => element.get_all_events(),
             Item::Comment(comment) => comment.get_all_events(),
             Item::Text(text) => text.get_all_events(),
             Item::DocType(doctype) => doctype.get_all_events(),

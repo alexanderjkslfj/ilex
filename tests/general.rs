@@ -159,7 +159,7 @@ mod tests {
 
         let mut items = parse(&xml).unwrap();
 
-        items.push(Item::Element(Element::new("x")));
+        items.push(Item::new_element("x", false));
 
         let Item::Element(element_a) = &mut items[0] else {
             panic!("Test data is corrupt.");
@@ -173,9 +173,7 @@ mod tests {
             panic!("Test data is corrupt.");
         };
 
-        element_b
-            .children
-            .push(Item::EmptyElement(EmptyElement::new("z")));
+        element_b.children.push(Item::new_element("z", true));
 
         let modified_xml = items_to_string(&items);
 
@@ -235,7 +233,6 @@ mod tests {
         };
 
         let desc_it = a.find_descendants(&|item| match item {
-            Item::EmptyElement(el) => el.get_attribute("key").unwrap().unwrap() == "1",
             Item::Element(el) => el.get_attribute("key").unwrap().unwrap() == "1",
             _ => false,
         });

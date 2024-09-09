@@ -1,4 +1,4 @@
-use crate::{Element, EmptyElement, Item, Other};
+use crate::{Element, Item, Other};
 use quick_xml::{events::Event, Reader};
 
 /** Parse raw XML and trim whitespace at the front and end of text. */
@@ -25,8 +25,10 @@ fn parse_events<'a>(events: &[Event<'a>]) -> Vec<Item<'a>> {
             Event::PI(item) => items.push(Item::PI(Other::PI(item.to_owned()))),
             Event::Decl(item) => items.push(Item::Decl(Other::Decl(item.to_owned()))),
             Event::DocType(item) => items.push(Item::DocType(Other::DocType(item.to_owned()))),
-            Event::Empty(item) => items.push(Item::EmptyElement(EmptyElement {
+            Event::Empty(item) => items.push(Item::Element(Element {
                 element: item.to_owned(),
+                children: Vec::new(),
+                self_closing: true,
             })),
             Event::Start(start) => {
                 let mut depth = 1;
@@ -47,10 +49,11 @@ fn parse_events<'a>(events: &[Event<'a>]) -> Vec<Item<'a>> {
                         _ => (),
                     }
                     sub_events.push(event.to_owned());
-                };
+                }
                 items.push(Item::Element(Element {
                     element: start.to_owned(),
                     children: parse_events(&sub_events),
+                    self_closing: false,
                 }));
             }
             Event::End(_) => panic!("aaaaa!"),
@@ -96,7 +99,6 @@ pub fn items_to_string(items: &[Item]) -> String {
             Item::Decl(text) => text.to_string(),
             Item::DocType(text) => text.to_string(),
             Item::Element(text) => text.to_string(),
-            Item::EmptyElement(text) => text.to_string(),
         };
         str.push_str(&item_str);
     }

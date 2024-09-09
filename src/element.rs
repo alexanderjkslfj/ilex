@@ -8,7 +8,7 @@ use quick_xml::{
 use crate::{
     traits::GetEvents,
     util::{get_attribute, get_attributes, qname_to_string, set_attribute},
-    EmptyElement, Error, Item, Tag,
+    Error, Item, Tag,
 };
 
 /** An XML element: ```<element></element>``` */
@@ -17,13 +17,16 @@ pub struct Element<'a> {
     pub(crate) element: BytesStart<'a>,
     /** All items contained within the element. */
     pub children: Vec<Item<'a>>,
+    /** If the element is childless: Should it be self-closing? */
+    pub self_closing: bool,
 }
 
 impl<'a> Element<'a> {
-    pub fn new(name: &'a str) -> Self {
+    pub fn new(name: &'a str, self_closing: bool) -> Self {
         Element {
             element: BytesStart::new(name),
             children: Vec::new(),
+            self_closing,
         }
     }
 
@@ -150,16 +153,6 @@ impl<'a> Tag<'a> for Element<'a> {
     }
 }
 
-impl<'a> From<EmptyElement<'a>> for Element<'a> {
-    fn from(value: EmptyElement<'a>) -> Self {
-        let element: BytesStart<'a> = value.element;
-        Element {
-            element,
-            children: Vec::new(),
-        }
-    }
-}
-
 impl Display for Element<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut writer = Writer::new(Cursor::new(Vec::new()));
@@ -176,16 +169,20 @@ impl Display for Element<'_> {
 
 impl GetEvents for Element<'_> {
     fn get_all_events(&self) -> Box<dyn Iterator<Item = Event> + '_> {
-        let start_event = std::iter::once_with(|| Event::Start(self.element.to_owned()));
-        let end_event = std::iter::once_with(|| Event::End(self.element.to_end()));
+        if self.self_closing && self.children.is_empty() {
+            Box::new(std::iter::once(Event::Empty(self.element.to_owned())))
+        } else {
+            let start_event = std::iter::once_with(|| Event::Start(self.element.to_owned()));
+            let end_event = std::iter::once_with(|| Event::End(self.element.to_end()));
 
-        let child_events = self
-            .children
-            .iter()
-            .flat_map(|child| child.get_all_events());
+            let child_events = self
+                .children
+                .iter()
+                .flat_map(|child| child.get_all_events());
 
-        let events = start_event.chain(child_events.chain(end_event));
+            let events = start_event.chain(child_events.chain(end_event));
 
-        Box::new(events)
+            Box::new(events)
+        }
     }
 }
