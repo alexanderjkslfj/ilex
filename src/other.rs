@@ -10,35 +10,47 @@ use crate::{traits::GetEvents, util::u8_to_string};
 /** Any XML item that is not an element. */
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Other<'a> {
+    /** Comment ```<!-- ... -->```. */
     Comment(BytesText<'a>),
+    /** Escaped character data between tags. */
     Text(BytesText<'a>),
+    /** Document type definition data (DTD) stored in ```<!DOCTYPE ...>```. */
     DocType(BytesText<'a>),
+    /** Unescaped character data stored in ```<![CDATA[...]]>```. */
     CData(BytesCData<'a>),
+    /** XML declaration ```<?xml ...?>```. */
     Decl(BytesDecl<'a>),
+    /** Processing instruction ```<?...?>```. */
     PI(BytesPI<'a>),
 }
 
 impl<'a> Other<'a> {
+    /** Create a new comment. */
     pub fn new_comment(content: &'a str) -> Self {
         Other::Comment(BytesText::new(content))
     }
 
+    /** Create a new text. */
     pub fn new_text(content: &'a str) -> Self {
         Other::Text(BytesText::new(content))
     }
 
+    /** Create a new doctype. */
     pub fn new_doctype(content: &'a str) -> Self {
         Other::DocType(BytesText::new(content))
     }
 
+    /** Create a new character data. */
     pub fn new_cdata(content: &'a str) -> Self {
         Other::CData(BytesCData::new(content))
     }
 
+    /** Create a new processing instruction. */
     pub fn new_pi(content: &'a str) -> Self {
         Other::PI(BytesPI::new(content))
     }
 
+    /** Create a new declaration. */
     pub fn new_decl(version: &str, encoding: Option<&str>, standalone: Option<&str>) -> Self {
         Other::Decl(BytesDecl::new(version, encoding, standalone))
     }

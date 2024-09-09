@@ -11,7 +11,7 @@ use crate::{
     Error, Item, Tag,
 };
 
-/** An XML element: ```<element></element>``` */
+/** ```<tag attr="value">...</tag>``` or ```<tag attr="value" />```. */
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Element<'a> {
     pub(crate) element: BytesStart<'a>,
@@ -22,6 +22,7 @@ pub struct Element<'a> {
 }
 
 impl<'a> Element<'a> {
+    /** Create a new Element. */
     pub fn new(name: &'a str, self_closing: bool) -> Self {
         Element {
             element: BytesStart::new(name),

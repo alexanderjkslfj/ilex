@@ -24,30 +24,37 @@ pub enum Item<'a> {
 }
 
 impl<'a> Item<'a> {
+    /** Create a new Element. */
     pub fn new_element(name: &'a str, self_closing: bool) -> Self {
         Item::Element(Element::new(name, self_closing))
     }
 
+    /** Create a new comment item. */
     pub fn new_comment(content: &'a str) -> Self {
         Item::Comment(Other::new_comment(content))
     }
 
+    /** Create a new text item. */
     pub fn new_text(content: &'a str) -> Self {
         Item::Text(Other::new_text(content))
     }
 
+    /** Create a new doctype item. */
     pub fn new_doctype(content: &'a str) -> Self {
         Item::DocType(Other::new_doctype(content))
     }
 
+    /** Create a new character data item. */
     pub fn new_cdata(content: &'a str) -> Self {
         Item::CData(Other::new_cdata(content))
     }
 
+    /** Create a new declaration item. */
     pub fn new_decl(version: &str, encoding: Option<&str>, standalone: Option<&str>) -> Self {
         Item::Decl(Other::new_decl(version, encoding, standalone))
     }
 
+    /** Create a new processing instruction item. */
     pub fn new_pi(content: &'a str) -> Self {
         Item::PI(Other::new_pi(content))
     }
