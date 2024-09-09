@@ -31,17 +31,17 @@ fn parse_events<'a>(events: &[Event<'a>]) -> Vec<Item<'a>> {
             Event::Start(start) => {
                 let mut depth = 1;
                 let mut sub_events = Vec::new();
-                let end = loop {
+                loop {
                     i += 1;
                     let event = &events[i];
                     match event {
                         Event::Start(_) => {
                             depth += 1;
                         }
-                        Event::End(end) => {
+                        Event::End(_) => {
                             depth -= 1;
                             if depth == 0 {
-                                break end.to_owned();
+                                break;
                             }
                         }
                         _ => (),
@@ -49,8 +49,7 @@ fn parse_events<'a>(events: &[Event<'a>]) -> Vec<Item<'a>> {
                     sub_events.push(event.to_owned());
                 };
                 items.push(Item::Element(Element {
-                    start: start.to_owned(),
-                    end,
+                    element: start.to_owned(),
                     children: parse_events(&sub_events),
                 }));
             }

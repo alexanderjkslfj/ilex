@@ -1,7 +1,7 @@
-use std::{borrow::Cow, collections::HashMap, fmt::Display, io::Cursor, string::FromUtf8Error};
+use std::{collections::HashMap, fmt::Display, io::Cursor, string::FromUtf8Error};
 
 use quick_xml::{
-    events::{BytesEnd, BytesStart, Event},
+    events::{BytesStart, Event},
     Writer,
 };
 
@@ -14,19 +14,15 @@ use crate::{
 /** An XML element: ```<element></element>``` */
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Element<'a> {
-    pub(crate) start: BytesStart<'a>,
-    pub(crate) end: BytesEnd<'a>,
+    pub(crate) element: BytesStart<'a>,
     /** All items contained within the element. */
     pub children: Vec<Item<'a>>,
 }
 
 impl<'a> Element<'a> {
     pub fn new(name: &'a str) -> Self {
-        let start = BytesStart::new(name);
-        let end = BytesEnd::new(name);
         Element {
-            start,
-            end,
+            element: BytesStart::new(name),
             children: Vec::new(),
         }
     }
@@ -134,33 +130,31 @@ impl<'a> Element<'a> {
 
 impl<'a> Tag<'a> for Element<'a> {
     fn get_attributes(&self) -> Result<HashMap<String, String>, FromUtf8Error> {
-        get_attributes(&self.start)
+        get_attributes(&self.element)
     }
 
     fn get_attribute(&self, key: &str) -> Result<Option<String>, Error> {
-        get_attribute(&self.start, key)
+        get_attribute(&self.element, key)
     }
 
     fn set_attribute(&mut self, key: &str, value: &str) -> Result<(), FromUtf8Error> {
-        set_attribute(&mut self.start, key, value)
+        set_attribute(&mut self.element, key, value)
     }
 
     fn set_name(&mut self, name: &'a str) {
-        self.start.set_name(name.as_bytes());
-        self.end = BytesEnd::new(name); // TODO: do it without replacing the entire object
+        self.element.set_name(name.as_bytes());
     }
 
     fn get_name(&self) -> Result<String, FromUtf8Error> {
-        qname_to_string(&self.start.name())
+        qname_to_string(&self.element.name())
     }
 }
 
 impl<'a> From<EmptyElement<'a>> for Element<'a> {
     fn from(value: EmptyElement<'a>) -> Self {
-        let name = value.get_name().unwrap();
+        let element: BytesStart<'a> = value.element;
         Element {
-            start: value.element,
-            end: BytesEnd::new(Cow::from(name)),
+            element,
             children: Vec::new(),
         }
     }
@@ -182,8 +176,8 @@ impl Display for Element<'_> {
 
 impl GetEvents for Element<'_> {
     fn get_all_events(&self) -> Box<dyn Iterator<Item = Event> + '_> {
-        let start_event = std::iter::once(Event::Start(self.start.to_owned()));
-        let end_event = std::iter::once(Event::End(self.end.to_owned()));
+        let start_event = std::iter::once_with(|| Event::Start(self.element.to_owned()));
+        let end_event = std::iter::once_with(|| Event::End(self.element.to_end()));
 
         let child_events = self
             .children

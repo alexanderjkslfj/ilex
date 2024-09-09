@@ -69,7 +69,7 @@ impl<'a> TryFrom<Element<'a>> for EmptyElement<'a> {
     fn try_from(value: Element<'a>) -> Result<Self, Self::Error> {
         if value.children.is_empty() {
             Ok(EmptyElement {
-                element: value.start,
+                element: value.element,
             })
         } else {
             Err(())
