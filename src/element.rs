@@ -6,8 +6,7 @@ use quick_xml::{
 };
 
 use crate::{
-    traits::GetEvents,
-    util::{qname_to_string, u8_to_string},
+    util::{qname_to_string, u8_to_string, GetEvents},
     Error, Item,
 };
 

@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use quick_xml::events::Event;
 
-use crate::{traits::GetEvents, Element, Other};
+use crate::{util::GetEvents, Element, Other};
 
 /** Any XML item. */
 #[derive(Debug, Clone, PartialEq, Eq)]

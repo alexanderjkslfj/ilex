@@ -12,7 +12,6 @@ mod element;
 mod item;
 mod other;
 mod parsing;
-mod traits;
 mod util;
 
 pub use element::*;

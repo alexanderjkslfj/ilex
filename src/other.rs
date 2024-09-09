@@ -5,7 +5,7 @@ use quick_xml::{
     Writer,
 };
 
-use crate::{traits::GetEvents, util::u8_to_string};
+use crate::util::{u8_to_string, GetEvents};
 
 /** Any XML item that is not an element. */
 #[derive(Debug, Clone, PartialEq, Eq)]
