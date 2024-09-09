@@ -1,5 +1,5 @@
 fn main() {
-    use ilex_xml::{items_to_string, parse_trimmed, Item, Tag};
+    use ilex_xml::{items_to_string, parse_trimmed, Item};
 
     let xml = r#"
     <!-- The cat is cute. -->

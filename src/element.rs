@@ -1,14 +1,14 @@
 use std::{collections::HashMap, fmt::Display, io::Cursor, string::FromUtf8Error};
 
 use quick_xml::{
-    events::{BytesStart, Event},
+    events::{attributes::Attribute, BytesStart, Event},
     Writer,
 };
 
 use crate::{
     traits::GetEvents,
-    util::{get_attribute, get_attributes, qname_to_string, set_attribute},
-    Error, Item, Tag,
+    util::{qname_to_string, u8_to_string},
+    Error, Item,
 };
 
 /** ```<tag attr="value">...</tag>``` or ```<tag attr="value" />```. */
@@ -130,26 +130,65 @@ impl<'a> Element<'a> {
 
         Ok(content)
     }
-}
 
-impl<'a> Tag<'a> for Element<'a> {
-    fn get_attributes(&self) -> Result<HashMap<String, String>, FromUtf8Error> {
-        get_attributes(&self.element)
+    /** Get a map of all attributes. If an attribute occurs multiple times, the last occurence is used. */
+    pub fn get_attributes(&self) -> Result<HashMap<String, String>, FromUtf8Error> {
+        let attrs: Vec<Attribute> = self
+            .element
+            .attributes()
+            .filter_map(|attr| {
+                if attr.is_ok() {
+                    Some(attr.unwrap())
+                } else {
+                    None
+                }
+            })
+            .collect();
+
+        let mut attributes = HashMap::with_capacity(attrs.len());
+
+        for attr in attrs {
+            let key = qname_to_string(&attr.key)?;
+            let value = String::from_utf8((*attr.value).to_vec())?;
+            attributes.insert(key, value);
+        }
+
+        Ok(attributes)
     }
 
-    fn get_attribute(&self, key: &str) -> Result<Option<String>, Error> {
-        get_attribute(&self.element, key)
+    /** Get an attribute. */
+    pub fn get_attribute(&self, key: &str) -> Result<Option<String>, Error> {
+        let Some(attr) = self.element.try_get_attribute(key)? else {
+            return Ok(None);
+        };
+        let value_res = u8_to_string(&attr.value);
+        if value_res.is_err() {
+            return Err(Error::NonDecodable(Some(
+                value_res.unwrap_err().utf8_error(),
+            )));
+        }
+        Ok(Some(value_res.unwrap()))
     }
 
-    fn set_attribute(&mut self, key: &str, value: &str) -> Result<(), FromUtf8Error> {
-        set_attribute(&mut self.element, key, value)
+    /** Add or replace an attribute. */
+    pub fn set_attribute(&mut self, key: &str, value: &str) -> Result<(), FromUtf8Error> {
+        let mut attributes = self.get_attributes()?;
+        attributes.insert(String::from(key), String::from(value));
+        let attrs = attributes
+            .iter()
+            .map(|(key, value)| (key.as_str(), value.as_str()));
+        self.element.clear_attributes();
+        self.element.extend_attributes(attrs);
+        Ok(())
     }
 
-    fn set_name(&mut self, name: &'a str) {
+    /** Change the tag name. */
+    pub fn set_name(&mut self, name: &'a str) {
         self.element.set_name(name.as_bytes());
     }
 
-    fn get_name(&self) -> Result<String, FromUtf8Error> {
+    /** Get the tag name. */
+    pub fn get_name(&self) -> Result<String, FromUtf8Error> {
         qname_to_string(&self.element.name())
     }
 }
