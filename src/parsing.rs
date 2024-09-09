@@ -1,19 +1,23 @@
-use crate::{Element, Error, Item, Other};
-use quick_xml::{events::Event, Reader};
+use crate::{util::qname_to_string, Element, Error, Item, Other};
+use quick_xml::{
+    errors::IllFormedError,
+    events::Event,
+    Reader,
+};
 
 /** Parse raw XML and trim whitespace at the front and end of text. */
 pub fn parse_trimmed(xml: &str) -> Result<Vec<Item>, Error> {
     let events = get_all_events(xml, true)?;
-    Ok(parse_events(&events))
+    Ok(parse_events(&events)?)
 }
 
 /** Parse raw XML. */
 pub fn parse(xml: &str) -> Result<Vec<Item>, Error> {
     let events = get_all_events(xml, false)?;
-    Ok(parse_events(&events))
+    Ok(parse_events(&events)?)
 }
 
-fn parse_events<'a>(events: &[Event<'a>]) -> Vec<Item<'a>> {
+fn parse_events<'a>(events: &[Event<'a>]) -> Result<Vec<Item<'a>>, Error> {
     let mut items = Vec::new();
 
     let mut i = 0;
@@ -52,17 +56,28 @@ fn parse_events<'a>(events: &[Event<'a>]) -> Vec<Item<'a>> {
                 }
                 items.push(Item::Element(Element {
                     element: start.to_owned(),
-                    children: parse_events(&sub_events),
+                    children: parse_events(&sub_events)?,
                     self_closing: false,
                 }));
             }
-            Event::End(_) => panic!("aaaaa!"),
-            Event::Eof => break,
+            Event::End(end) => {
+                let name = qname_to_string(&end.name());
+                if name.is_ok() {
+                    return Err(Error::IllFormed(IllFormedError::UnmatchedEndTag(
+                        name.unwrap(),
+                    )));
+                } else {
+                    return Err(Error::NonDecodable(Some(name.unwrap_err().utf8_error())));
+                };
+            }
+            Event::Eof => {
+                panic!("An unexpected internal error occured in the ilex_xml library. This should never happen. Please issue a report to the maintainers.");
+            },
         }
         i += 1;
     }
 
-    items
+    Ok(items)
 }
 
 fn get_all_events(xml: &str, trim: bool) -> Result<Vec<Event>, Error> {
