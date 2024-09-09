@@ -1,9 +1,5 @@
-use crate::{util::qname_to_string, Element, Error, Item, Other};
-use quick_xml::{
-    errors::IllFormedError,
-    events::Event,
-    Reader,
-};
+use crate::{util::qname_to_string, Element, Error, Item, Other, ToStringSafe};
+use quick_xml::{errors::IllFormedError, events::Event, Reader};
 
 /** Parse raw XML and trim whitespace at the front and end of text. */
 pub fn parse_trimmed(xml: &str) -> Result<Vec<Item>, Error> {
@@ -72,7 +68,7 @@ fn parse_events<'a>(events: &[Event<'a>]) -> Result<Vec<Item<'a>>, Error> {
             }
             Event::Eof => {
                 panic!("An unexpected internal error occured in the ilex_xml library. This should never happen. Please issue a report to the maintainers.");
-            },
+            }
         }
         i += 1;
     }
@@ -101,21 +97,24 @@ fn get_all_events(xml: &str, trim: bool) -> Result<Vec<Event>, Error> {
 
 /** Stringify a list of XML items.
 
-Equivalent to calling ```to_string``` on each item and concatenating the results.
-*/
+Equivalent to calling `to_string` on each item and concatenating the results.
+
+Parsing errors are silently ignored.*/
 pub fn items_to_string(items: &[Item]) -> String {
-    let mut str = String::new();
-    for item in items {
-        let item_str = match &item {
-            Item::Text(text) => text.to_string(),
-            Item::Comment(text) => text.to_string(),
-            Item::CData(text) => text.to_string(),
-            Item::PI(text) => text.to_string(),
-            Item::Decl(text) => text.to_string(),
-            Item::DocType(text) => text.to_string(),
-            Item::Element(text) => text.to_string(),
-        };
-        str.push_str(&item_str);
-    }
-    str
+    items
+        .iter()
+        .map(|item| match &item {
+            Item::Text(text) => text.to_string_safe(),
+            Item::Comment(text) => text.to_string_safe(),
+            Item::CData(text) => text.to_string_safe(),
+            Item::PI(text) => text.to_string_safe(),
+            Item::Decl(text) => text.to_string_safe(),
+            Item::DocType(text) => text.to_string_safe(),
+            Item::Element(text) => text.to_string_safe(),
+        })
+        .filter_map(|result| match result {
+            Ok(str) => Some(str),
+            Err(_) => None,
+        })
+        .collect()
 }

@@ -133,7 +133,7 @@ impl<'a> Element<'a> {
 
     If an attribute occurs multiple times, the last occurence is used.
 
-    Parsing errors are silently ignored. */
+    Parsing errors are silently ignored.*/
     pub fn get_attributes(&self) -> HashMap<String, String> {
         HashMap::from_iter(
             self.element
