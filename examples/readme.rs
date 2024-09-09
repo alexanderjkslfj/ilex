@@ -34,7 +34,7 @@ fn main() {
                 panic!("The children are elements, too.")
             };
 
-            let name = child.get_text_content().unwrap();
+            let name = child.get_text_content();
             let color = child.get_attribute("likes").unwrap().unwrap();
 
             println!("{name}'s favorite color is {color}!");

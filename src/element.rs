@@ -1,7 +1,7 @@
 use std::{collections::HashMap, fmt::Display, io::Cursor, string::FromUtf8Error};
 
 use quick_xml::{
-    events::{attributes::Attribute, BytesStart, Event},
+    events::{BytesStart, Event},
     Writer,
 };
 
@@ -107,52 +107,57 @@ impl<'a> Element<'a> {
     }
 
     /** Get the text content of all text items within the element.
+
     ```xml
     <element>Hello<child>World</child></element>
     ```
+
     The above would result in "HelloWorld".
-         */
-    pub fn get_text_content(&self) -> Result<String, FromUtf8Error> {
-        let mut content = String::new();
 
-        for child in &self.children {
-            match child {
-                Item::Text(text) => {
-                    content.push_str(&text.get_value()?);
-                }
-                Item::Element(element) => {
-                    content.push_str(&element.get_text_content()?);
-                }
-                _ => (),
-            }
-        }
-
-        Ok(content)
+    Parsing errors are silently ignored.*/
+    pub fn get_text_content(&self) -> String {
+        self.children
+            .iter()
+            .filter_map(|child| match child {
+                Item::Text(text) => match text.get_value() {
+                    Ok(text) => Some(text),
+                    Err(_) => None,
+                },
+                Item::Element(element) => Some(element.get_text_content()),
+                _ => None,
+            })
+            .collect()
     }
 
-    /** Get a map of all attributes. If an attribute occurs multiple times, the last occurence is used. */
-    pub fn get_attributes(&self) -> Result<HashMap<String, String>, FromUtf8Error> {
-        let attrs: Vec<Attribute> = self
-            .element
-            .attributes()
-            .filter_map(|attr| {
-                if attr.is_ok() {
-                    Some(attr.unwrap())
-                } else {
-                    None
-                }
-            })
-            .collect();
+    /** Get a map of all attributes.
 
-        let mut attributes = HashMap::with_capacity(attrs.len());
+    If an attribute occurs multiple times, the last occurence is used.
 
-        for attr in attrs {
-            let key = qname_to_string(&attr.key)?;
-            let value = String::from_utf8((*attr.value).to_vec())?;
-            attributes.insert(key, value);
-        }
-
-        Ok(attributes)
+    Parsing errors are silently ignored. */
+    pub fn get_attributes(&self) -> HashMap<String, String> {
+        HashMap::from_iter(
+            self.element
+                .attributes()
+                .filter_map(|attr| {
+                    if attr.is_ok() {
+                        Some(attr.unwrap())
+                    } else {
+                        None
+                    }
+                })
+                .map(|attr| {
+                    (
+                        qname_to_string(&attr.key),
+                        String::from_utf8((*attr.value).to_vec()),
+                    )
+                })
+                .filter_map(|attr| {
+                    if attr.0.is_err() || attr.1.is_err() {
+                        return None;
+                    }
+                    Some((attr.0.unwrap(), attr.1.unwrap()))
+                }),
+        )
     }
 
     /** Get an attribute. */
@@ -171,7 +176,7 @@ impl<'a> Element<'a> {
 
     /** Add or replace an attribute. */
     pub fn set_attribute(&mut self, key: &str, value: &str) -> Result<(), FromUtf8Error> {
-        let mut attributes = self.get_attributes()?;
+        let mut attributes = self.get_attributes();
         attributes.insert(String::from(key), String::from(value));
         let attrs = attributes
             .iter()

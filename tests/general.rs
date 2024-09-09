@@ -26,7 +26,7 @@ mod tests {
             panic!("Test data is corrupt.");
         };
 
-        assert_eq!(element.get_text_content().unwrap(), "Bob99Alice123");
+        assert_eq!(element.get_text_content(), "Bob99Alice123");
     }
 
     #[test]
@@ -55,11 +55,11 @@ mod tests {
             let Item::Element(name_element) = datapoints[0] else {
                 panic!("Datapoint should be element.");
             };
-            let name = name_element.get_text_content().unwrap();
+            let name = name_element.get_text_content();
             let Item::Element(age_element) = datapoints[1] else {
                 panic!("Datapoint should be element.");
             };
-            let age = age_element.get_text_content().unwrap();
+            let age = age_element.get_text_content();
             people_info.push((name, age));
         }
 
@@ -98,7 +98,7 @@ mod tests {
             panic!("Test data is corrupt.");
         };
 
-        let attrs = item.get_attributes().unwrap();
+        let attrs = item.get_attributes();
 
         assert_eq!(attrs.len(), 12);
         assert_eq!(attrs.get("id").unwrap(), "svg1");
@@ -114,7 +114,7 @@ mod tests {
             panic!("Test data is corrupt.");
         };
 
-        let attrs = element.get_attributes().unwrap();
+        let attrs = element.get_attributes();
 
         assert_eq!(attrs.len(), 0);
     }
