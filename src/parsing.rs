@@ -1,14 +1,14 @@
-use crate::{Element, Item, Other};
+use crate::{Element, Error, Item, Other};
 use quick_xml::{events::Event, Reader};
 
 /** Parse raw XML and trim whitespace at the front and end of text. */
-pub fn parse_trimmed(xml: &str) -> Result<Vec<Item>, quick_xml::Error> {
+pub fn parse_trimmed(xml: &str) -> Result<Vec<Item>, Error> {
     let events = get_all_events(xml, true)?;
     Ok(parse_events(&events))
 }
 
 /** Parse raw XML. */
-pub fn parse(xml: &str) -> Result<Vec<Item>, quick_xml::Error> {
+pub fn parse(xml: &str) -> Result<Vec<Item>, Error> {
     let events = get_all_events(xml, false)?;
     Ok(parse_events(&events))
 }
@@ -65,7 +65,7 @@ fn parse_events<'a>(events: &[Event<'a>]) -> Vec<Item<'a>> {
     items
 }
 
-fn get_all_events(xml: &str, trim: bool) -> Result<Vec<Event>, quick_xml::Error> {
+fn get_all_events(xml: &str, trim: bool) -> Result<Vec<Event>, Error> {
     let mut events = Vec::new();
 
     let mut reader = Reader::from_str(xml);

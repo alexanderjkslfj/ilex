@@ -10,7 +10,7 @@ use crate::{
     Error, Item,
 };
 
-/** ```<tag attr="value">...</tag>``` or ```<tag attr="value" />```. */
+/** An XML element: ```<tag attr="value">...</tag>``` or ```<tag attr="value" />```. */
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Element<'a> {
     pub(crate) element: BytesStart<'a>,

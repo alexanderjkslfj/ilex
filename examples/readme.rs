@@ -1,4 +1,6 @@
-fn main() {
+use ilex_xml::Error;
+
+fn main() -> Result<(), Error> {
     use ilex_xml::{items_to_string, parse_trimmed, Item};
 
     let xml = r#"
@@ -20,7 +22,7 @@ fn main() {
             );
         };
 
-        println!("I found a useful comment:{}", comment.get_value().unwrap());
+        println!("I found a useful comment:{}", comment.get_value()?);
     }
 
     let Item::Element(parent) = &mut items[1] else {
@@ -35,7 +37,7 @@ fn main() {
             };
 
             let name = child.get_text_content();
-            let color = child.get_attribute("likes").unwrap().unwrap();
+            let color = child.get_attribute("likes")?.unwrap();
 
             println!("{name}'s favorite color is {color}!");
         }
@@ -61,4 +63,6 @@ fn main() {
             items_to_string(&items)
         );
     }
+
+    Ok(())
 }
