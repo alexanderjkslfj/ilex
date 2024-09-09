@@ -4,7 +4,7 @@ version = 3
 
 [[package]]
 name = "ilex_xml"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "quick-xml",
 ]

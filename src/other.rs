@@ -2,10 +2,13 @@ use std::{fmt::Display, io::Cursor, string::FromUtf8Error};
 
 use quick_xml::{
     events::{BytesCData, BytesDecl, BytesPI, BytesText, Event},
-    Writer,
+    Error, Writer,
 };
 
-use crate::util::{u8_to_string, GetEvents};
+use crate::{
+    util::{u8_to_string, GetEvents},
+    ToStringSafe,
+};
 
 /** Any XML item that is not an element. */
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -86,13 +89,28 @@ impl<'a> Other<'a> {
     }
 }
 
+impl ToStringSafe for Other<'_> {
+    fn to_string_safe(&self) -> Result<String, crate::Error> {
+        let mut writer = Writer::new(Cursor::new(Vec::new()));
+
+        let event = self.get_event();
+
+        let write_result = writer.write_event(event);
+        if write_result.is_err() {
+            return Err(write_result.unwrap_err());
+        }
+
+        match String::from_utf8(writer.into_inner().into_inner()) {
+            Ok(str) => Ok(str),
+            Err(err) => Err(Error::NonDecodable(Some(err.utf8_error()))),
+        }
+    }
+}
+
 impl Display for Other<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut writer = Writer::new(Cursor::new(Vec::new()));
-        let event = self.get_event();
-        writer.write_event(event).unwrap();
-        let result = String::from_utf8(writer.into_inner().into_inner()).unwrap();
-        write!(f, "{result}")
+        let str = self.to_string_safe().unwrap();
+        write!(f, "{str}")
     }
 }
 

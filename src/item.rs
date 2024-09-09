@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use quick_xml::events::Event;
 
-use crate::{util::GetEvents, Element, Other};
+use crate::{util::GetEvents, Element, Other, ToStringSafe};
 
 /** Any XML item. */
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -57,6 +57,20 @@ impl<'a> Item<'a> {
     /** Create a new processing instruction item. */
     pub fn new_pi(content: &'a str) -> Self {
         Item::PI(Other::new_pi(content))
+    }
+}
+
+impl ToStringSafe for Item<'_> {
+    fn to_string_safe(&self) -> Result<String, crate::Error> {
+        match self {
+            Item::Element(element) => element.to_string_safe(),
+            Item::Comment(comment) => comment.to_string_safe(),
+            Item::Text(text) => text.to_string_safe(),
+            Item::DocType(doctype) => doctype.to_string_safe(),
+            Item::CData(cdata) => cdata.to_string_safe(),
+            Item::Decl(decl) => decl.to_string_safe(),
+            Item::PI(pi) => pi.to_string_safe(),
+        }
     }
 }
 

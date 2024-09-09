@@ -6,7 +6,7 @@ use quick_xml::{
 };
 
 use crate::{
-    util::{qname_to_string, u8_to_string, GetEvents},
+    util::{qname_to_string, u8_to_string, GetEvents, ToStringSafe},
     Error, Item,
 };
 
@@ -197,17 +197,28 @@ impl<'a> Element<'a> {
     }
 }
 
-impl Display for Element<'_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl ToStringSafe for Element<'_> {
+    fn to_string_safe(&self) -> Result<String, Error> {
         let mut writer = Writer::new(Cursor::new(Vec::new()));
 
         for event in self.get_all_events() {
-            writer.write_event(event).unwrap();
+            let result = writer.write_event(event);
+            if result.is_err() {
+                return Err(result.unwrap_err());
+            }
         }
 
-        let result = String::from_utf8(writer.into_inner().into_inner()).unwrap();
+        match String::from_utf8(writer.into_inner().into_inner()) {
+            Ok(str) => Ok(str),
+            Err(err) => Err(Error::NonDecodable(Some(err.utf8_error()))),
+        }
+    }
+}
 
-        write!(f, "{result}")
+impl Display for Element<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let str = self.to_string_safe().unwrap();
+        write!(f, "{str}")
     }
 }
 
