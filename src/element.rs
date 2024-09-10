@@ -88,6 +88,20 @@ impl<'a> Element<'a> {
             })
     }
 
+    /** Find all child elements with matching name */
+    pub fn find_children_mut(&'a mut self, name: &'a str) -> impl Iterator<Item = &mut Element> {
+        self.children
+            .iter_mut()
+            .filter_map(|child| match child {
+                Item::Element(element) => Some(element),
+                _ => None,
+            })
+            .filter(move |child| {
+                let child_name = child.get_name();
+                child_name.is_ok() && child_name.unwrap() == name
+            })
+    }
+
     /** Get all items at a certain depth within the element.
 
     Depth must not be zero.
@@ -119,6 +133,41 @@ impl<'a> Element<'a> {
             })
             // get the deeper items (recursively)
             .flat_map(move |element| element.get_items_at_depth(depth - 1));
+
+        Box::new(items)
+    }
+
+    /** Get all items at a certain depth within the element.
+
+    Depth must not be zero.
+
+    ```xml
+    <element>
+        <item depth="1">
+            <item at-depth="2">
+                This text is at depth 3.
+            </item>
+        </item>
+    </element>
+    ```*/
+    pub fn get_items_at_depth_mut(&'a mut self, depth: usize) -> Box<dyn Iterator<Item = &mut Item> + '_> {
+        if depth == 1 {
+            return Box::new(self.children.iter_mut());
+        }
+        if depth == 0 {
+            panic!("depth cannot be zero.");
+        }
+
+        let items = self
+            .children
+            .iter_mut()
+            // select only the children which are elements (and can therefore go deeper)
+            .filter_map(|item| match item {
+                Item::Element(element) => Some(element),
+                _ => None,
+            })
+            // get the deeper items (recursively)
+            .flat_map(move |element| element.get_items_at_depth_mut(depth - 1));
 
         Box::new(items)
     }
