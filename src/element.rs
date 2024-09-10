@@ -75,6 +75,9 @@ impl<'a> Element<'a> {
     }
 
     /** Get all items at a certain depth within the element.
+
+    Depth must not be zero.
+
     ```xml
     <element>
         <item depth="1">

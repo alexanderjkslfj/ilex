@@ -103,15 +103,7 @@ Parsing errors are silently ignored.*/
 pub fn items_to_string(items: &[Item]) -> String {
     items
         .iter()
-        .map(|item| match &item {
-            Item::Text(text) => text.to_string_safe(),
-            Item::Comment(text) => text.to_string_safe(),
-            Item::CData(text) => text.to_string_safe(),
-            Item::PI(text) => text.to_string_safe(),
-            Item::Decl(text) => text.to_string_safe(),
-            Item::DocType(text) => text.to_string_safe(),
-            Item::Element(text) => text.to_string_safe(),
-        })
+        .map(|item| item.to_string_safe())
         .filter_map(|result| match result {
             Ok(str) => Some(str),
             Err(_) => None,
