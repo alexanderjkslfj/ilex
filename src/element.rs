@@ -74,6 +74,20 @@ impl<'a> Element<'a> {
         Box::new(chain)
     }
 
+    /** Find all child elements with matching name */
+    pub fn find_children(&'a self, name: &'a str) -> impl Iterator<Item = &Element> {
+        self.children
+            .iter()
+            .filter_map(|child| match child {
+                Item::Element(element) => Some(element),
+                _ => None,
+            })
+            .filter(move |child| {
+                let child_name = child.get_name();
+                child_name.is_ok() && child_name.unwrap() == name
+            })
+    }
+
     /** Get all items at a certain depth within the element.
 
     Depth must not be zero.
@@ -132,35 +146,40 @@ impl<'a> Element<'a> {
             .collect()
     }
 
+    /** Get all attributes.
+
+    Parsing errors are silently ignored.*/
+    pub fn get_all_attributes(&'a self) -> impl Iterator<Item = (String, String)> + 'a {
+        self.element
+            .attributes()
+            .filter_map(|attr| {
+                if attr.is_ok() {
+                    Some(attr.unwrap())
+                } else {
+                    None
+                }
+            })
+            .map(|attr| {
+                (
+                    qname_to_string(&attr.key),
+                    String::from_utf8((*attr.value).to_vec()),
+                )
+            })
+            .filter_map(|attr| {
+                if attr.0.is_err() || attr.1.is_err() {
+                    return None;
+                }
+                Some((attr.0.unwrap(), attr.1.unwrap()))
+            })
+    }
+
     /** Get a map of all attributes.
 
     If an attribute occurs multiple times, the last occurence is used.
 
     Parsing errors are silently ignored.*/
     pub fn get_attributes(&self) -> HashMap<String, String> {
-        HashMap::from_iter(
-            self.element
-                .attributes()
-                .filter_map(|attr| {
-                    if attr.is_ok() {
-                        Some(attr.unwrap())
-                    } else {
-                        None
-                    }
-                })
-                .map(|attr| {
-                    (
-                        qname_to_string(&attr.key),
-                        String::from_utf8((*attr.value).to_vec()),
-                    )
-                })
-                .filter_map(|attr| {
-                    if attr.0.is_err() || attr.1.is_err() {
-                        return None;
-                    }
-                    Some((attr.0.unwrap(), attr.1.unwrap()))
-                }),
-        )
+        HashMap::from_iter(self.get_all_attributes())
     }
 
     /** Get an attribute. */
