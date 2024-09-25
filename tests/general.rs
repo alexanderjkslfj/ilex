@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     use ilex_xml::*;
-    use std::fs::read_to_string;
+    use std::{fs::read_to_string, num::NonZero};
 
     #[test]
     fn test_echo() {
@@ -40,7 +40,9 @@ mod tests {
         let Item::Element(people_element) = &items[0] else {
             panic!("Test data is corrupt.");
         };
-        let people: Vec<_> = people_element.get_items_at_depth(1).collect();
+        let people: Vec<_> = people_element
+            .get_items_at_depth(NonZero::new(1).unwrap())
+            .collect();
 
         assert_eq!(people.len(), 2);
 
@@ -50,7 +52,9 @@ mod tests {
             let Item::Element(person) = p else {
                 panic!("Item should be element.");
             };
-            let datapoints: Vec<_> = person.get_items_at_depth(1).collect();
+            let datapoints: Vec<_> = person
+                .get_items_at_depth(NonZero::new(1).unwrap())
+                .collect();
             assert_eq!(datapoints.len(), 2);
             let Item::Element(name_element) = datapoints[0] else {
                 panic!("Datapoint should be element.");

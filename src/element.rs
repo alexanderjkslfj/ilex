@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fmt::Display, io::Cursor, string::FromUtf8Error};
+use std::{collections::HashMap, fmt::Display, io::Cursor, num::NonZero, string::FromUtf8Error};
 
 use quick_xml::{
     events::{BytesStart, Event},
@@ -104,8 +104,6 @@ impl<'a> Element<'a> {
 
     /** Get all items at a certain depth within the element.
 
-    Depth must not be zero.
-
     ```xml
     <element>
         <item depth="1">
@@ -115,12 +113,12 @@ impl<'a> Element<'a> {
         </item>
     </element>
     ```*/
-    pub fn get_items_at_depth(&self, depth: usize) -> Box<dyn Iterator<Item = &Item> + '_> {
-        if depth == 1 {
+    pub fn get_items_at_depth(
+        &self,
+        depth: NonZero<usize>,
+    ) -> Box<dyn Iterator<Item = &Item> + '_> {
+        if depth.get() == 1 {
             return Box::new(self.children.iter());
-        }
-        if depth == 0 {
-            panic!("depth cannot be zero.");
         }
 
         let items = self
@@ -132,7 +130,7 @@ impl<'a> Element<'a> {
                 _ => None,
             })
             // get the deeper items (recursively)
-            .flat_map(move |element| element.get_items_at_depth(depth - 1));
+            .flat_map(move |element| element.get_items_at_depth(NonZero::new(depth.get() - 1).unwrap()));
 
         Box::new(items)
     }
@@ -150,7 +148,10 @@ impl<'a> Element<'a> {
         </item>
     </element>
     ```*/
-    pub fn get_items_at_depth_mut(&'a mut self, depth: usize) -> Box<dyn Iterator<Item = &mut Item> + '_> {
+    pub fn get_items_at_depth_mut(
+        &'a mut self,
+        depth: usize,
+    ) -> Box<dyn Iterator<Item = &mut Item> + '_> {
         if depth == 1 {
             return Box::new(self.children.iter_mut());
         }
