@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     use ilex_xml::*;
-    use std::{fs::read_to_string, num::NonZero};
+    use std::{collections::HashMap, fs::read_to_string, num::NonZero};
 
     #[test]
     fn test_echo() {
@@ -155,6 +155,40 @@ mod tests {
         let modified_xml = items_to_string(&items);
 
         assert_eq!(modified_xml, r#"<x></x><a works="yes"></a><y></y>"#);
+    }
+
+    #[test]
+    fn test_set_attributes() {
+        let xml = r#"<x></x><a works="no"></a><y></y>"#;
+
+        let mut items = parse(&xml).unwrap();
+
+        let Item::Element(element) = &mut items[1] else {
+            panic!("Test data is corrupt.");
+        };
+
+        let attributes = HashMap::from([(String::from("foo"), String::from("bar"))]);
+
+        element.set_attributes(attributes);
+
+        let modified = items_to_string(&items);
+
+        assert_eq!(modified, r#"<x></x><a foo="bar"></a><y></y>"#);
+    }
+
+    #[test]
+    fn test_has_attribute() {
+        let xml = r#"<x></x><a works="no"></a><y></y>"#;
+
+        let mut items = parse(&xml).unwrap();
+
+        let Item::Element(element) = &mut items[1] else {
+            panic!("Test data is corrupt.");
+        };
+
+        assert!(!element.has_attribute("foo"));
+        assert!(element.has_attribute("works"));
+        assert!(!element.has_attribute("bar"));
     }
 
     #[test]
