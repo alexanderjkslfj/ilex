@@ -1,10 +1,7 @@
 use std::{collections::HashMap, fmt::Display, io::Cursor, num::NonZero, string::FromUtf8Error};
 
 use quick_xml::{
-    events::{
-        attributes::{Attr, Attribute},
-        BytesStart, Event,
-    },
+    events::{attributes::Attribute, BytesStart, Event},
     Writer,
 };
 
@@ -270,11 +267,10 @@ impl<'a> Element<'a> {
     }
 
     /** Add or replace an attribute. */
-    pub fn set_attribute(&mut self, key: &str, value: &str) -> Result<(), FromUtf8Error> {
+    pub fn set_attribute(&mut self, key: &str, value: &str) {
         let mut attributes = self.get_attributes();
         attributes.insert(String::from(key), String::from(value));
         self.set_attributes(attributes);
-        Ok(())
     }
 
     /** Change the tag name. */

@@ -133,7 +133,7 @@ mod tests {
             panic!("Test data is corrupt.");
         };
 
-        element.set_attribute("works", "yes").unwrap();
+        element.set_attribute("works", "yes");
 
         let modified_xml = items_to_string(&items);
 
@@ -150,7 +150,7 @@ mod tests {
             panic!("Test data is corrupt.");
         };
 
-        element.set_attribute("works", "yes").unwrap();
+        element.set_attribute("works", "yes");
 
         let modified_xml = items_to_string(&items);
 
