@@ -1,7 +1,10 @@
 use std::{collections::HashMap, fmt::Display, io::Cursor, num::NonZero, string::FromUtf8Error};
 
 use quick_xml::{
-    events::{BytesStart, Event},
+    events::{
+        attributes::{Attr, Attribute},
+        BytesStart, Event,
+    },
     Writer,
 };
 
@@ -130,7 +133,9 @@ impl<'a> Element<'a> {
                 _ => None,
             })
             // get the deeper items (recursively)
-            .flat_map(move |element| element.get_items_at_depth(NonZero::new(depth.get() - 1).unwrap()));
+            .flat_map(move |element| {
+                element.get_items_at_depth(NonZero::new(depth.get() - 1).unwrap())
+            });
 
         Box::new(items)
     }
@@ -254,15 +259,21 @@ impl<'a> Element<'a> {
         return result.is_some();
     }
 
+    /** Replace all attributes with new ones. */
+    pub fn set_attributes(&mut self, attributes: HashMap<String, String>) {
+        let attrs = attributes
+            .iter()
+            .map(|(key, value)| (key.as_str(), value.as_str()))
+            .map(|(key, value)| Attribute::from((key, value)));
+        self.element.clear_attributes();
+        self.element.extend_attributes(attrs);
+    }
+
     /** Add or replace an attribute. */
     pub fn set_attribute(&mut self, key: &str, value: &str) -> Result<(), FromUtf8Error> {
         let mut attributes = self.get_attributes();
         attributes.insert(String::from(key), String::from(value));
-        let attrs = attributes
-            .iter()
-            .map(|(key, value)| (key.as_str(), value.as_str()));
-        self.element.clear_attributes();
-        self.element.extend_attributes(attrs);
+        self.set_attributes(attributes);
         Ok(())
     }
 
