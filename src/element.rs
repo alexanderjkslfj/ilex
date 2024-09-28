@@ -246,6 +246,14 @@ impl<'a> Element<'a> {
         Ok(Some(value_res.unwrap()))
     }
 
+    /** Check if the element has the attribute. */
+    pub fn has_attribute(&self, key: &str) -> bool {
+        let Ok(result) = self.element.try_get_attribute(key) else {
+            return false;
+        };
+        return result.is_some();
+    }
+
     /** Add or replace an attribute. */
     pub fn set_attribute(&mut self, key: &str, value: &str) -> Result<(), FromUtf8Error> {
         let mut attributes = self.get_attributes();
