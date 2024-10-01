@@ -1,6 +1,6 @@
 [package]
 name = "ilex_xml"
-version = "0.4.1"
+version = "0.4.2"
 
 description = "XML as a tree: Read and write"
 keywords = ["xml", "parser", "writer", "tree", "parsing"]
@@ -11,7 +11,7 @@ readme = "README.md"
 repository = "https://github.com/alexanderjkslfj/ilex"
 
 edition = "2021"
-rust-version = "1.66"
+rust-version = "1.79"
 include = ["src/*", "LICENSE", "README.md"]
 
 [dependencies]
