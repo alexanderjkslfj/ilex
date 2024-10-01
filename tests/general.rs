@@ -281,4 +281,24 @@ mod tests {
         assert_eq!(descs[0].to_string(), r#"<b key="1"/>"#);
         assert_eq!(descs[1].to_string(), r#"<e key="1">Some Text</e>"#);
     }
+
+    #[test]
+    fn test_unmatched_end_tag() {
+        let xml_1 = "</b>";
+        let xml_2 = "<a></a></b>";
+        let xml_3 = "<a></b></a>";
+
+        assert!(parse(xml_1).is_err());
+        assert!(parse(xml_2).is_err());
+        assert!(parse(xml_3).is_err());
+    }
+
+    #[test]
+    fn test_missing_closing_tag() {
+        let xml_1 = "<a>";
+        let xml_2 = "<a><b></b>";
+
+        assert!(parse(xml_1).is_err());
+        assert!(parse(xml_2).is_err());
+    }
 }
