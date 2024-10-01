@@ -35,7 +35,12 @@ fn parse_events<'a>(events: &[Event<'a>]) -> Result<Vec<Item<'a>>, Error> {
                 let mut sub_events = Vec::new();
                 loop {
                     i += 1;
-                    let event = &events[i];
+                    let Some(event) = events.get(i) else {
+                        let name = qname_to_string(&start.name());
+                        return Err(Error::IllFormed(IllFormedError::MissingEndTag(
+                            name.unwrap_or(String::new()),
+                        )));
+                    };
                     match event {
                         Event::Start(_) => {
                             depth += 1;
