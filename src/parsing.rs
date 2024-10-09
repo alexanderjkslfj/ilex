@@ -3,22 +3,21 @@ use quick_xml::{errors::IllFormedError, events::Event, Reader};
 
 /** Parse raw XML and trim whitespace at the front and end of text. */
 pub fn parse_trimmed(xml: &str) -> Result<Vec<Item>, Error> {
-    let events = get_all_events(xml, true)?;
-    Ok(parse_events(&events)?)
+    let events = read_events(xml, true);
+    Ok(parse_events(events)?)
 }
 
 /** Parse raw XML. */
 pub fn parse(xml: &str) -> Result<Vec<Item>, Error> {
-    let events = get_all_events(xml, false)?;
-    Ok(parse_events(&events)?)
+    let events = read_events(xml, false);
+    Ok(parse_events(events)?)
 }
 
-fn parse_events<'a>(events: &[Event<'a>]) -> Result<Vec<Item<'a>>, Error> {
+fn parse_events<'a>(mut events: impl Iterator<Item = Result<Event<'a>, Error>>) -> Result<Vec<Item<'a>>, Error> {
     let mut items = Vec::new();
 
-    let mut i = 0;
-    while i < events.len() {
-        match &events[i] {
+    while let Some(next) = events.next() {
+        match next? {
             Event::Text(item) => items.push(Item::Text(Other::Text(item.to_owned()))),
             Event::Comment(item) => items.push(Item::Comment(Other::Comment(item.to_owned()))),
             Event::CData(item) => items.push(Item::CData(Other::CData(item.to_owned()))),
@@ -34,8 +33,7 @@ fn parse_events<'a>(events: &[Event<'a>]) -> Result<Vec<Item<'a>>, Error> {
                 let mut depth = 1;
                 let mut sub_events = Vec::new();
                 loop {
-                    i += 1;
-                    let Some(event) = events.get(i) else {
+                    let Some(Ok(event)) = events.next() else {
                         let name = qname_to_string(&start.name());
                         return Err(Error::IllFormed(IllFormedError::MissingEndTag(
                             name.unwrap_or(String::new()),
@@ -53,11 +51,11 @@ fn parse_events<'a>(events: &[Event<'a>]) -> Result<Vec<Item<'a>>, Error> {
                         }
                         _ => (),
                     }
-                    sub_events.push(event.to_owned());
+                    sub_events.push(Ok(event.to_owned()));
                 }
                 items.push(Item::Element(Element {
                     element: start.to_owned(),
-                    children: parse_events(&sub_events)?,
+                    children: parse_events(sub_events.into_iter())?,
                     self_closing: false,
                 }));
             }
@@ -72,32 +70,36 @@ fn parse_events<'a>(events: &[Event<'a>]) -> Result<Vec<Item<'a>>, Error> {
                 };
             }
             Event::Eof => {
-                panic!("An unexpected internal error occured in the ilex_xml library. This should never happen. Please issue a report to the maintainers.");
+                unreachable!();
             }
         }
-        i += 1;
     }
 
-    Ok(items)
+    return Ok(items);
 }
 
-fn get_all_events(xml: &str, trim: bool) -> Result<Vec<Event>, Error> {
-    let mut events = Vec::new();
+struct EventIterator<'a> {
+    reader: Reader<&'a [u8]>
+}
 
+impl<'a> Iterator for EventIterator<'a> {
+    type Item = Result<Event<'a>, Error>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.reader.read_event() {
+            Err(err) => Some(Err(err)),
+
+            Ok(Event::Eof) => None,
+
+            Ok(e) => Some(Ok(e)),
+        }
+    }
+}
+
+fn read_events(xml: &str, trim: bool) -> impl Iterator<Item = Result<Event, Error>> {
     let mut reader = Reader::from_str(xml);
     reader.config_mut().trim_text(trim);
-
-    loop {
-        match reader.read_event() {
-            Err(err) => return Err(err),
-
-            Ok(Event::Eof) => break,
-
-            Ok(e) => events.push(e),
-        };
-    }
-
-    Ok(events)
+    EventIterator { reader }
 }
 
 /** Stringify a list of XML items.
