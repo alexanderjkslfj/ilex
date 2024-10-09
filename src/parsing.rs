@@ -33,12 +33,13 @@ fn parse_events<'a>(mut events: impl Iterator<Item = Result<Event<'a>, Error>>) 
                 let mut depth = 1;
                 let mut sub_events = Vec::new();
                 loop {
-                    let Some(Ok(event)) = events.next() else {
+                    let Some(event_result) = events.next() else {
                         let name = qname_to_string(&start.name());
                         return Err(Error::IllFormed(IllFormedError::MissingEndTag(
                             name.unwrap_or(String::new()),
                         )));
                     };
+                    let event = event_result?;
                     match event {
                         Event::Start(_) => {
                             depth += 1;
